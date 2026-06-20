@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-// Cambia por tu URL de producción cuando despliegues
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+
+console.log('API_BASE:', API_BASE); // Ver en consola
 
 const api = axios.create({
   baseURL: API_BASE,

@@ -9,8 +9,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",          # desarrollo Vite
-        "https://tu-frontend.vercel.app", # producción (cambiar después)
-        "https://tu-frontend.netlify.app",
+        "https://golazowc.vercel.app", # producción (cambiar después)
+        "https://golazowc.netlify.app",
         # También puedes usar ["*"] solo para pruebas
     ],
     allow_credentials=True,
