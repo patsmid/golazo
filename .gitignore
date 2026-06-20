@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.db
+*.sqlite3
+*.log
+
+# Node
+node_modules/
+dist/
+build/
+*.local
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data (si quieres ignorar datos grandes)
+data/*.db
+data/*.csv
+data/*.json
+!data/fifa_ranking.json  # si quieres incluir este
+test_rapidapi.py
