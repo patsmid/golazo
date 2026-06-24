@@ -23,9 +23,29 @@ def get_today_dates():
 
 @router.get("/matches/upcoming")
 async def upcoming_matches():
-    matches = await fetch_upcoming_matches()
-    matches.sort(key=match_datetime_sort)
-    matches = matches[:5]
+    # Obtener todos los partidos futuros
+    upcoming = await fetch_upcoming_matches()
+    if not upcoming:
+        return {"date": None, "matches": [], "count": 0, "message": "No hay partidos próximos"}
+
+    # Agrupar por fecha
+    from collections import defaultdict
+    by_date = defaultdict(list)
+    for m in upcoming:
+        by_date[m["date"]].append(m)
+
+    # Ordenar fechas y tomar la más cercana
+    sorted_dates = sorted(by_date.keys())
+    if not sorted_dates:
+        return {"date": None, "matches": [], "count": 0, "message": "No hay partidos próximos"}
+
+    target_date = sorted_dates[0]
+    matches = by_date[target_date]
+
+    # Ordenar por fecha/hora y ID como desempate
+    matches.sort(key=lambda x: (x.get("datetime", x.get("date", "")), int(x.get("match_id", 0))))
+
+    # Enriquecer con noticias
     async def enrich(m):
         home, away = m["home_team"], m["away_team"]
         try:
@@ -40,10 +60,17 @@ async def upcoming_matches():
             )
         except:
             hn = an = mn = "No disponible"
-        m["home_news"] = hn; m["away_news"] = an; m["match_news"] = mn
+        m["home_news"] = hn
+        m["away_news"] = an
+        m["match_news"] = mn
         return m
+
     enriched = await asyncio.gather(*(enrich(m) for m in matches))
-    return enriched
+    return {
+        "date": target_date,
+        "matches": enriched,
+        "count": len(enriched)
+    }
 
 @router.get("/predictions/today")
 async def get_today_predictions():

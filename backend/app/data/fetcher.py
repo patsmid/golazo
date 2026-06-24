@@ -207,9 +207,10 @@ async def fetch_upcoming_matches() -> List[Dict]:
             "stage": game.get("stage", ""),
         })
 
+    # En fetch_upcoming_matches, al final:
     matches.sort(key=lambda x: x["date"])
     print(f"worldcup26.ir: {len(matches)} próximos partidos")
-    return matches[:10]
+    return matches  # <--- quitamos [:10]
 
 async def fetch_recent_results() -> List[Dict]:
     await _load_teams()

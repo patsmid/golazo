@@ -1,10 +1,15 @@
 import json
 import re
-from groq import Groq
+from typing import List, Optional
 from app.config import GROQ_API_KEY
 from app.data.parser import fetch_news_headlines as _fetch_headlines
 
-client = Groq(api_key=GROQ_API_KEY)
+# Groq es opcional
+try:
+    from groq import Groq
+    groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
+except ImportError:
+    groq_client = None
 
 
 SENTIMENT_PROMPT = """Analiza los titulares de noticias sobre {team_name} en el Mundial 2026.
@@ -59,62 +64,6 @@ def _clean_json(text: str) -> str:
     return text.strip()
 
 
-def analyze_sentiment(team_name: str, headlines: list) -> tuple:
-    """Devuelve (score, reason). Si falla, usa fallback."""
-    if not headlines or all("no se encontraron" in h.lower() for h in headlines):
-        return 0.0, "Sin noticias relevantes"
-
-    headlines_text = "\n".join(f"- {h}" for h in headlines[:5])
-    prompt = SENTIMENT_PROMPT.format(team_name=team_name, headlines=headlines_text)
-    try:
-        chat_completion = client.chat.completions.create(
-            messages=[{"role": "user", "content": prompt}],
-            model="llama-3.1-8b-instant",
-            temperature=0.05,
-            max_tokens=80,
-            response_format={"type": "json_object"},
-        )
-        response_text = _clean_json(chat_completion.choices[0].message.content)
-        result = json.loads(response_text)
-        score = float(result["sentiment_score"])
-        score = max(-1.0, min(1.0, score))
-        reason = result.get("reason", "Analisis completado")
-        reason = reason[:50]
-        return score, reason
-    except Exception as e:
-        print(f"Error en Groq sentiment: {e}")
-        return fallback_sentiment(headlines)
-
-
-def summarize_headlines(team_name: str, headlines: list) -> str:
-    """Genera un resumen corto de 1-2 frases de los titulares. Fallback a concatenacion."""
-    if not headlines or all("no se encontraron" in h.lower() for h in headlines):
-        return "Sin noticias recientes."
-
-    headlines_text = "\n".join(f"- {h}" for h in headlines[:5])
-    prompt = SUMMARY_PROMPT.format(team_name=team_name, headlines=headlines_text)
-    try:
-        chat_completion = client.chat.completions.create(
-            messages=[{"role": "user", "content": prompt}],
-            model="llama-3.1-8b-instant",
-            temperature=0.1,
-            max_tokens=60,
-        )
-        summary = chat_completion.choices[0].message.content.strip()
-        summary = summary.replace('"', "").replace("'", "").replace("```", "")
-        return summary[:120]
-    except Exception as e:
-        print(f"Error en Groq summary: {e}")
-        return " | ".join(headlines[:2])[:120]
-
-
-def fetch_match_news_summary(home: str, away: str) -> str:
-    """Busca y resume noticias sobre el partido especifico."""
-    query = f"{home} vs {away} mundial 2026"
-    headlines = _fetch_headlines(query)
-    return summarize_headlines(f"{home} vs {away}", headlines)
-
-
 def fallback_sentiment(headlines: list) -> tuple:
     """Diccionario de polaridad simple en espanol."""
     positivo = [
@@ -140,3 +89,102 @@ def fallback_sentiment(headlines: list) -> tuple:
     else:
         reason = "Noticias neutrales"
     return score, reason
+
+
+def analyze_sentiment(team_name: str, headlines: list) -> tuple:
+    """Devuelve (score, reason). Si falla, usa fallback."""
+    if not headlines or all("no se encontraron" in h.lower() for h in headlines):
+        return 0.0, "Sin noticias relevantes"
+
+    if not groq_client:
+        return fallback_sentiment(headlines)
+
+    headlines_text = "\n".join(f"- {h}" for h in headlines[:5])
+    prompt = SENTIMENT_PROMPT.format(team_name=team_name, headlines=headlines_text)
+    try:
+        chat_completion = groq_client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="llama-3.1-8b-instant",
+            temperature=0.05,
+            max_tokens=80,
+            response_format={"type": "json_object"},
+        )
+        response_text = _clean_json(chat_completion.choices[0].message.content)
+        result = json.loads(response_text)
+        score = float(result["sentiment_score"])
+        score = max(-1.0, min(1.0, score))
+        reason = result.get("reason", "Analisis completado")
+        reason = reason[:50]
+        return score, reason
+    except Exception as e:
+        print(f"Error en Groq sentiment: {e}")
+        return fallback_sentiment(headlines)
+
+
+def summarize_headlines(team: str, headlines: List[str]) -> str:
+    """
+    Genera un resumen corto de las noticias de un equipo.
+    """
+    if not headlines or headlines == [f"No se encontraron noticias sobre {team}"]:
+        return f"Sin noticias relevantes sobre {team}"
+
+    # Si no hay cliente Groq, resumen manual
+    if not groq_client:
+        combined = " ".join(headlines[:3])
+        return combined[:120] + "..." if len(combined) > 120 else combined
+
+    prompt = f"""Resume en una oración corta (máximo 100 caracteres) las noticias más relevantes sobre {team} en el Mundial 2026.
+
+Titulares:
+{chr(10).join(headlines[:5])}
+
+Resumen:"""
+
+    try:
+        response = groq_client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="llama-3.1-8b-instant",
+            temperature=0.3,
+            max_tokens=80,
+        )
+        summary = response.choices[0].message.content.strip()
+        if len(summary) > 120:
+            summary = summary[:117] + "..."
+        return summary
+    except Exception as e:
+        print(f"Error generando resumen para {team}: {e}")
+        combined = " ".join(headlines[:2])
+        return combined[:100] + "..." if len(combined) > 100 else combined
+
+
+def fetch_match_news_summary(home: str, away: str) -> str:
+    """
+    Genera un resumen corto del partido entre home y away.
+    """
+    if not groq_client:
+        return f"Partido entre {home} y {away} en el Mundial 2026."
+
+    prompt = f"""Resume en una oración corta (máximo 100 caracteres) lo más destacado del partido entre {home} y {away} en el Mundial 2026.
+Si no hay información específica, di que no hay noticias.
+Resumen:"""
+
+    try:
+        response = groq_client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="llama-3.1-8b-instant",
+            temperature=0.3,
+            max_tokens=80,
+        )
+        summary = response.choices[0].message.content.strip()
+        if len(summary) > 120:
+            summary = summary[:117] + "..."
+        return summary
+    except Exception as e:
+        print(f"Error generando resumen del partido: {e}")
+        return f"Partido entre {home} y {away} en el Mundial 2026."
+
+
+# Función auxiliar para obtener titulares (wrapper)
+def fetch_news_headlines(team: str) -> List[str]:
+    """Wrapper para mantener compatibilidad con otras partes del código."""
+    return _fetch_headlines(team)
