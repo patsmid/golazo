@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import predictions, admin  # si tienes admin
+from app.routers import simulation  # <-- Añadir esta importación
 
 app = FastAPI(title="Golazo API - Mundial 2026")
 
@@ -20,6 +21,7 @@ app.add_middleware(
 
 # Incluir routers
 app.include_router(predictions.router)
+app.include_router(simulation.router)
 # app.include_router(admin.router)  # si existe
 
 @app.get("/")

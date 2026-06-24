@@ -5,6 +5,7 @@ from app.data.fetcher import fetch_upcoming_matches, fetch_all_matches, get_team
 from app.services.prediction_service import generate_prediction, update_upcoming_predictions, process_all_finished_matches, recalculate_all_elo, elo_manager
 from app.services.news_service import summarize_headlines, fetch_match_news_summary
 from app.data.parser import fetch_news_headlines
+from collections import defaultdict  # Añadir al inicio del archivofrom collections import defaultdict  # Añadir al inicio del archivo
 import asyncio, datetime
 
 router = APIRouter(prefix="/api/v1")
@@ -12,9 +13,9 @@ router = APIRouter(prefix="/api/v1")
 class MatchResultInput(BaseModel):
     home_team: str; away_team: str; home_goals: int; away_goals: int
 
-def safe_match_sort(match):
-    try: return int(match.get("match_id", 0))
-    except: return 0
+# Ordenar por fecha/hora (ascendente)
+def match_datetime_sort(match):
+    return match.get("datetime", match.get("date", ""))
 
 def get_today_dates():
     today = datetime.date.today()
@@ -23,7 +24,7 @@ def get_today_dates():
 @router.get("/matches/upcoming")
 async def upcoming_matches():
     matches = await fetch_upcoming_matches()
-    matches.sort(key=safe_match_sort)
+    matches.sort(key=match_datetime_sort)
     matches = matches[:5]
     async def enrich(m):
         home, away = m["home_team"], m["away_team"]
@@ -46,37 +47,64 @@ async def upcoming_matches():
 
 @router.get("/predictions/today")
 async def get_today_predictions():
-    today, tomorrow = get_today_dates()
+    # Obtener partidos futuros (no empezados)
     upcoming = await fetch_upcoming_matches()
-    matches = [m for m in upcoming if m["date"] == today]
-    target = today
-    if not matches:
-        all_m = await fetch_all_matches()
-        matches = [m for m in all_m if m["date"] == today]
-    if not matches:
-        matches = [m for m in upcoming if m["date"] == tomorrow]
-        target = tomorrow
-    fallback = False
-    if not matches:
-        matches = upcoming[:5]
-        fallback = True
-        if matches: target = matches[0]["date"]
-    if not matches:
-        return {"date": today, "matches": [], "count": 0, "message": "No hay partidos disponibles"}
 
-    matches.sort(key=safe_match_sort)
+    # Si no hay próximos, buscar en todos los partidos aquellos que no hayan finalizado
+    if not upcoming:
+        all_m = await fetch_all_matches()
+        today_str = datetime.date.today().isoformat()
+        upcoming = [m for m in all_m if m.get("status") != "finished" and m.get("date", "") >= today_str]
+
+    if not upcoming:
+        return {"date": None, "matches": [], "count": 0, "message": "No hay partidos próximos disponibles"}
+
+    # Agrupar por fecha (sin hora)
+    by_date = defaultdict(list)
+    for m in upcoming:
+        by_date[m["date"]].append(m)
+
+    # Ordenar fechas y tomar la más cercana (la primera)
+    sorted_dates = sorted(by_date.keys())
+    target_date = sorted_dates[0]
+    matches = by_date[target_date]
+
+    # Ordenar por hora (datetime) dentro de la misma fecha
+    matches.sort(key=lambda x: (x.get("datetime", x.get("date", "")), int(x.get("match_id", 0))))
+
+    # --- OBTENER TODOS LOS PARTIDOS FINALIZADOS PARA EL HISTORIAL ---
+    all_matches = await fetch_all_matches()
+    finished = [m for m in all_matches if m.get("status") == "finished" and m.get("home_score") is not None]
+    finished.sort(key=lambda x: x.get("date", ""), reverse=True)
+
+    print(f"📊 Partidos finalizados disponibles: {len(finished)}")
+    for f in finished[:3]:
+        print(f"  {f['home_team']} vs {f['away_team']} - {f['home_score']}-{f['away_score']} ({f['date']})")
+
     async def process_match(m):
         key = f"pred:{m['match_id']}"
         cached = cache_get(key)
-        if cached: return cached
+        # Usar caché solo si ya tiene historial
+        if cached and cached.get("recent_home_matches"):
+            return cached
+
+        home = m["home_team"]
+        away = m["away_team"]
+        home_matches = [fm for fm in finished if fm["home_team"] == home or fm["away_team"] == home]
+        away_matches = [fm for fm in finished if fm["home_team"] == away or fm["away_team"] == away]
+        recent_home = home_matches[:5]
+        recent_away = away_matches[:5]
+
         try:
-            pred = await generate_prediction(m, use_sentiment=True, use_odds=True)
+            pred = await generate_prediction(m, use_sentiment=True, use_odds=True,
+                                             recent_home=recent_home, recent_away=recent_away)
             cache_set(key, pred, 12*3600)
             return pred
         except Exception as e:
             return {"match_id": m["match_id"], "error": str(e)}
+
     predictions = await asyncio.gather(*(process_match(m) for m in matches))
-    return {"date": target, "matches": predictions, "count": len(predictions), "fallback": fallback}
+    return {"date": target_date, "matches": predictions, "count": len(predictions), "fallback": False}
 
 @router.get("/predictions/{match_id}")
 async def get_prediction(match_id: str):

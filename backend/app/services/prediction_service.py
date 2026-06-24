@@ -22,7 +22,7 @@ elo_manager = EloManager()
 
 HOST_COUNTRIES = {"mexico", "united states", "canada"}
 SENTIMENT_BETA = 0.03
-MODEL_VERSION = "1.0.0"
+MODEL_VERSION = "1.0.1"
 PROCESSED_MATCHES_KEY = "processed_wc_matches"
 
 
@@ -48,6 +48,51 @@ def calculate_confidence(probs: Dict[str, float]) -> str:
     elif diff > 0.12:
         return "Media"
     return "Baja"
+
+
+def format_recent_matches(team_name: str, matches: List[Dict]) -> str:
+    """Formatea una lista de partidos (ya filtrados por equipo) en un texto legible."""
+    if not matches:
+        return "Sin partidos recientes."
+    lines = []
+    for m in matches[:5]:  # máximo 5
+        date = m.get("date", "")
+        home = m.get("home_team", "")
+        away = m.get("away_team", "")
+        home_goals = m.get("home_score")
+        away_goals = m.get("away_score")
+        if home_goals is None or away_goals is None:
+            continue
+        # Determinar si el equipo es local o visitante
+        if home == team_name:
+            result = f"{home_goals}-{away_goals} vs {away}"
+        else:
+            result = f"{away_goals}-{home_goals} vs {home}"
+        lines.append(f"{date}: {result}")
+    return "\n".join(lines)
+
+def summarize_recent_matches(matches: List[Dict], team: str) -> List[Dict]:
+    """
+    Convierte lista de partidos completos a un resumen con fecha, rival y marcador.
+    """
+    summary = []
+    for m in matches[:5]:
+        if m["home_team"] == team:
+            opponent = m["away_team"]
+            gf = m["home_score"]
+            ga = m["away_score"]
+        else:
+            opponent = m["home_team"]
+            gf = m["away_score"]
+            ga = m["home_score"]
+        summary.append({
+            "date": m.get("date"),
+            "opponent": opponent,
+            "goals_for": gf,
+            "goals_against": ga,
+            "result": f"{gf}-{ga}"
+        })
+    return summary
 
 
 # ============================================================================
@@ -153,6 +198,12 @@ Etapa: {stage}
 ## Top 3 Casas de Apuestas
 {top_bookmakers_text}
 
+## Historial reciente (últimos 5 partidos)
+- {home_team}:
+{recent_home_text}
+- {away_team}:
+{recent_away_text}
+
 ## Noticias y Sentimiento
 - {home_team}: {sentiment_home_reason} (score: {sentiment_home_score:.1f})
 - {away_team}: {sentiment_away_reason} (score: {sentiment_away_score:.1f})
@@ -183,7 +234,9 @@ async def generate_groq_analysis(
     model_xg_home: float,
     model_xg_away: float,
     odds_data: Dict,
-    sentiment_data: Dict
+    sentiment_data: Dict,
+    recent_home_text: str = "No disponible",
+    recent_away_text: str = "No disponible"
 ) -> str:
     """
     Genera análisis usando Groq. Si no hay API key o falla, devuelve un mensaje.
@@ -248,7 +301,9 @@ async def generate_groq_analysis(
             sentiment_home_reason=sent_home,
             sentiment_away_reason=sent_away,
             sentiment_home_score=sent_home_score,
-            sentiment_away_score=sent_away_score
+            sentiment_away_score=sent_away_score,   # <--- CORREGIDO: coma añadida
+            recent_home_text=recent_home_text,
+            recent_away_text=recent_away_text
         )
 
         chat_completion = groq_client.chat.completions.create(
@@ -269,23 +324,58 @@ async def generate_groq_analysis(
 # PREDICCIÓN COMPLETA
 # ============================================================================
 
-async def generate_prediction(match: dict, use_sentiment: bool = True, use_odds: bool = True):
+async def generate_prediction(match: dict, use_sentiment: bool = True, use_odds: bool = True,
+                              recent_home: List[Dict] = None, recent_away: List[Dict] = None):
     home = match["home_team"]
     away = match["away_team"]
 
     base = base_prediction(match)
-
     lambda_home = base["lambda_home"]
     lambda_away = base["lambda_away"]
 
+    if recent_home is not None and recent_away is not None and len(recent_home) > 0 and len(recent_away) > 0:
+        # Calcular promedio de goles marcados por cada equipo en sus últimos partidos
+        home_goals_scored = []
+        for m in recent_home:
+            if m["home_team"] == home:
+                home_goals_scored.append(m["home_score"])
+            else:  # jugó de visitante
+                home_goals_scored.append(m["away_score"])
+        away_goals_scored = []
+        for m in recent_away:
+            if m["home_team"] == away:
+                away_goals_scored.append(m["home_score"])
+            else:
+                away_goals_scored.append(m["away_score"])
+
+        # Media global de goles por equipo en el Mundial (valor estimado)
+        MEDIA_GLOBAL = 1.2
+
+        if home_goals_scored:
+            avg_home = sum(home_goals_scored) / len(home_goals_scored)
+            factor_home = avg_home / MEDIA_GLOBAL
+            # Limitar el factor para no disparar demasiado (0.7 a 1.8)
+            factor_home = max(0.7, min(1.8, factor_home))
+            lambda_home *= factor_home
+
+        if away_goals_scored:
+            avg_away = sum(away_goals_scored) / len(away_goals_scored)
+            factor_away = avg_away / MEDIA_GLOBAL
+            factor_away = max(0.7, min(1.8, factor_away))
+            lambda_away *= factor_away
+
+        # Volver a aplicar límites
+        lambda_home = safe_lambda(lambda_home)
+        lambda_away = safe_lambda(lambda_away)
+
     sentiment_data = None
+
     if use_sentiment:
         lambda_home, lambda_away, sentiment_data = await apply_sentiment(
             home, away, lambda_home, lambda_away
         )
 
     probs, top_scores = dixon_coles_probabilities(lambda_home, lambda_away)
-
     best_score = top_scores[0]["score"]
     h, a = map(int, best_score.split("-"))
 
@@ -305,6 +395,10 @@ async def generate_prediction(match: dict, use_sentiment: bool = True, use_odds:
     if use_odds:
         odds_data = await get_enriched_odds(home, away)
 
+    # Generar texto de historial
+    recent_home_text = format_recent_matches(home, recent_home) if recent_home else "No disponible"
+    recent_away_text = format_recent_matches(away, recent_away) if recent_away else "No disponible"
+
     analysis = await generate_groq_analysis(
         home_team=home,
         away_team=away,
@@ -318,8 +412,14 @@ async def generate_prediction(match: dict, use_sentiment: bool = True, use_odds:
         model_xg_home=lambda_home,
         model_xg_away=lambda_away,
         odds_data=odds_data,
-        sentiment_data=sentiment_data
+        sentiment_data=sentiment_data,
+        recent_home_text=recent_home_text,
+        recent_away_text=recent_away_text
     )
+
+    # Incluir historial reciente en la respuesta (estructurado)
+    recent_home_summary = summarize_recent_matches(recent_home, home) if recent_home else []
+    recent_away_summary = summarize_recent_matches(recent_away, away) if recent_away else []
 
     prediction = {
         "match_id": match["match_id"],
@@ -343,6 +443,8 @@ async def generate_prediction(match: dict, use_sentiment: bool = True, use_odds:
         "odds": odds_data,
         "analysis": analysis,
         "sentiment": sentiment_data,
+        "recent_home_matches": recent_home_summary,
+        "recent_away_matches": recent_away_summary,
         "model_version": MODEL_VERSION,
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     }
@@ -359,10 +461,27 @@ async def update_upcoming_predictions():
     if not matches:
         return {"updated": 0}
 
+    # Obtener partidos finalizados para el historial
+    all_matches = await fetch_all_matches()
+    finished = [m for m in all_matches if m.get("status") == "finished" and m.get("home_score") is not None]
+
     updated = 0
     for match in matches:
         try:
-            pred = await generate_prediction(match)
+            home = match["home_team"]
+            away = match["away_team"]
+            home_matches = [fm for fm in finished if fm["home_team"] == home or fm["away_team"] == home]
+            away_matches = [fm for fm in finished if fm["home_team"] == away or fm["away_team"] == away]
+            recent_home = home_matches[:5]
+            recent_away = away_matches[:5]
+
+            pred = await generate_prediction(
+                match,
+                use_sentiment=True,
+                use_odds=True,
+                recent_home=recent_home,
+                recent_away=recent_away
+            )
             cache_set(f"pred:{match['match_id']}", pred, 12 * 3600)
             updated += 1
         except Exception as e:

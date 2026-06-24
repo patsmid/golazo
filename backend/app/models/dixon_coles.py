@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from scipy.stats import poisson
 from typing import Tuple, List, Dict
 
@@ -31,11 +32,23 @@ def dixon_coles_probabilities(lambda_home: float, lambda_away: float, max_goals=
         "away_win": round(away_win, 4)
     }, top_scores
 
-def elo_to_lambda(elo_home: float, elo_away: float, is_host_match: bool = False) -> Tuple[float, float]:
+
+def elo_to_lambda(elo_home, elo_away, is_host=False):
+    """
+    Convierte diferencias de Elo en parámetros lambda (goles esperados).
+    Retorna (lambda_home, lambda_away).
+    """
     diff = elo_home - elo_away
-    base = 1.20
-    home_factor = 1.10 if is_host_match else 1.0
-    away_factor = 0.90 if is_host_match else 1.0
-    lambda_home = base * home_factor * np.exp(diff / 550)
-    lambda_away = base * away_factor * np.exp(-diff / 550)
+    # Aumentamos el home advantage de 0.1 a 0.15
+    home_adv = 0.15 if is_host else 0.0
+    # Factor base: antes era ~0.9, ahora lo subimos a 1.2
+    base_factor = 1.3
+
+    lambda_home = math.exp((diff + home_adv) / 400.0) * base_factor
+    lambda_away = math.exp((-diff - home_adv) / 400.0) * base_factor
+
+    # Limitar para evitar valores extremos (mínimo 0.3, máximo 4.5)
+    lambda_home = max(0.3, min(4.5, lambda_home))
+    lambda_away = max(0.3, min(4.5, lambda_away))
+
     return lambda_home, lambda_away
