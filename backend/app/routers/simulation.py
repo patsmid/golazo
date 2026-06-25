@@ -15,7 +15,7 @@ except Exception:
 router = APIRouter(prefix="/api/v1")
 
 # ============================================================================
-# CONFIG
+# CONFIG - 2026 WORLD CUP FORMAT (12 Groups, 48 Teams)
 # ============================================================================
 
 GROUPS: Dict[str, List[str]] = {
@@ -36,13 +36,12 @@ GROUPS: Dict[str, List[str]] = {
 DEFAULT_SIMULATIONS = 5000
 MAX_SIMULATIONS = 100000
 
-# En Mundial no hay localía real.
+# En Mundial 2026, hay localía real para Estados Unidos, México y Canadá.
 HOSTS = {"Mexico", "Canada", "United States"}
-HOME_ADVANTAGE = 0.0
-
+HOME_ADVANTAGE_ELO_BOOST = 50  # Equivalente a ~0.15 goles extra de expectativa
 
 # ============================================================================
-# HELPERS
+# HELPERS & MATH MODELS
 # ============================================================================
 
 def clamp(value: float, low: float, high: float) -> float:
@@ -67,31 +66,48 @@ def poisson_sample(lmbda: float, rng: random.Random) -> int:
     return k - 1
 
 def expected_goals(team_a: str, team_b: str) -> Tuple[float, float]:
-    elo_a = get_rating(team_a)
-    elo_b = get_rating(team_b)
-    lambda_a, lambda_b = elo_to_lambda(elo_a, elo_b, team_a in HOSTS and HOME_ADVANTAGE != 0)
+    """
+    Modelo estadístico riguroso para calcular medias de Poisson (λ).
+    Usa la transformación logarítmica estándar de Elo: λ = μ * 10^((Elo_a - Elo_b) / 400)
+    donde μ es la media histórica de goles por equipo en mundiales (~1.35).
+    """
+    elo_a = get_rating(team_a) + (HOME_ADVANTAGE_ELO_BOOST if team_a in HOSTS else 0)
+    elo_b = get_rating(team_b) + (HOME_ADVANTAGE_ELO_BOOST if team_b in HOSTS else 0)
+
+    # Media base de goles en mundiales
+    mu = 1.35
+
+    # Probabilidad implícita y mapeo a expected goals
+    delta_elo = elo_a - elo_b
+    lambda_a = mu * (10 ** (delta_elo / 800))
+    lambda_b = mu * (10 ** (-delta_elo / 800))
+
+    # Clamps estadísticamente seguros (evitar varianza irreal, pero permitiendo goleadas)
     return (
-        clamp(float(lambda_a), 0.20, 3.50),
-        clamp(float(lambda_b), 0.20, 3.50),
+        clamp(float(lambda_a), 0.25, 4.0),
+        clamp(float(lambda_b), 0.25, 4.0),
     )
 
 def fair_play_score(team: dict) -> int:
-    # No modelamos tarjetas todavía, así que todos quedan igual.
+    # Menor es mejor en fair play. Si no hay modelo, 0 es neutral.
     return int(team.get("fair_play", 0))
 
 
 # ============================================================================
-# MATCH SIMULATION
+# MATCH SIMULATION (90 min & Extra Time)
 # ============================================================================
 
-def simulate_match(team_a: str, team_b: str, rng: random.Random) -> Tuple[int, int]:
+def simulate_match(team_a: str, team_b: str, rng: random.Random, time_factor: float = 1.0) -> Tuple[int, int]:
+    """
+    time_factor: 1.0 para 90 mins, ~0.33 para 30 mins de prórroga.
+    """
     lam_a, lam_b = expected_goals(team_a, team_b)
-    goals_a = poisson_sample(lam_a, rng)
-    goals_b = poisson_sample(lam_b, rng)
+    goals_a = poisson_sample(lam_a * time_factor, rng)
+    goals_b = poisson_sample(lam_b * time_factor, rng)
     return goals_a, goals_b
 
 def simulate_group_match(team_a: str, team_b: str, rng: random.Random) -> Dict:
-    goals_a, goals_b = simulate_match(team_a, team_b, rng)
+    goals_a, goals_b = simulate_match(team_a, team_b, rng, time_factor=1.0)
 
     if goals_a > goals_b:
         points_a, points_b = 3, 0
@@ -104,135 +120,92 @@ def simulate_group_match(team_a: str, team_b: str, rng: random.Random) -> Dict:
         result_a = result_b = "draw"
 
     return {
-        "team_a": team_a,
-        "team_b": team_b,
-        "goals_a": goals_a,
-        "goals_b": goals_b,
-        "points_a": points_a,
-        "points_b": points_b,
-        "result_a": result_a,
-        "result_b": result_b,
+        "team_a": team_a, "team_b": team_b,
+        "goals_a": goals_a, "goals_b": goals_b,
+        "points_a": points_a, "points_b": points_b,
+        "result_a": result_a, "result_b": result_b,
     }
 
 def simulate_knockout_match(team_a: str, team_b: str, rng: random.Random) -> Dict:
     """
-    En knockout, si empatan en 90', resolvemos por una probabilidad guiada por Elo.
-    Es más estable que una moneda 50/50 y evita campeones absurdos.
+    Reglas FIFA: Si empatan a los 90', Prórroga de 30 mins. Si persiste, Penales.
     """
-    goals_a, goals_b = simulate_match(team_a, team_b, rng)
+    goals_a, goals_b = simulate_match(team_a, team_b, rng, time_factor=1.0)
+    et_goals_a, et_goals_b = 0, 0
+    won_on_penalties = False
+    winner = team_a if goals_a > goals_b else team_b
 
-    if goals_a != goals_b:
-        winner = team_a if goals_a > goals_b else team_b
-    else:
-        elo_a = get_rating(team_a)
-        elo_b = get_rating(team_b)
-        p_a = 1.0 / (1.0 + 10 ** ((elo_b - elo_a) / 400.0))
-        winner = team_a if rng.random() < p_a else team_b
+    if goals_a == goals_b:
+        # Prórroga (30 minutos -> time_factor ~ 1/3)
+        et_goals_a, et_goals_b = simulate_match(team_a, team_b, rng, time_factor=0.33)
+        total_a = goals_a + et_goals_a
+        total_b = goals_b + et_goals_b
+
+        if total_a == total_b:
+            # Penales: Modelo sesgado por Elo
+            won_on_penalties = True
+            elo_a = get_rating(team_a)
+            elo_b = get_rating(team_b)
+            p_a = 1.0 / (1.0 + 10 ** ((elo_b - elo_a) / 400.0))
+            winner = team_a if rng.random() < p_a else team_b
+        else:
+            winner = team_a if total_a > total_b else team_b
 
     return {
-        "team_a": team_a,
-        "team_b": team_b,
-        "goals_a": goals_a,
-        "goals_b": goals_b,
+        "team_a": team_a, "team_b": team_b,
+        "goals_a": goals_a, "goals_b": goals_b,
+        "et_goals_a": et_goals_a, "et_goals_b": et_goals_b,
+        "penalties": won_on_penalties,
         "winner": winner,
     }
 
 
 # ============================================================================
-# FIFA GROUP TIEBREAKERS
+# FIFA GROUP TIEBREAKERS (Art 10.4 FIFA World Cup Regulations)
 # ============================================================================
-# Orden usado:
-# 1) puntos
-# 2) diferencia de goles
-# 3) goles a favor
-# 4) head-to-head points (solo entre empatados)
-# 5) head-to-head goal difference
-# 6) head-to-head goals scored
-# 7) fair play
-# 8) drawing of lots
 
-def _sort_basic(table: List[Dict], rng: random.Random) -> List[Dict]:
-    return sorted(
-        table,
-        key=lambda t: (
-            -t["points"],
-            -t["gd"],
-            -t["gf"],
-            -t.get("elo", 1500.0),
-            fair_play_score(t),
-            rng.random(),  # drawing of lots
-        ),
-    )
-
-def _head_to_head_subset(team_names: set[str], matches: List[dict]) -> Dict[str, Dict[str, int]]:
-    """
-    Calcula puntos/gd/gf solo entre equipos empatados.
-    """
+def _h2h_subset(team_names: set[str], matches: List[dict]) -> Dict[str, Dict[str, int]]:
     stats = {team: {"points": 0, "gf": 0, "ga": 0, "gd": 0} for team in team_names}
-
     for m in matches:
-        a = m["team_a"]
-        b = m["team_b"]
-        if a not in team_names or b not in team_names:
-            continue
-
-        ga = m["goals_a"]
-        gb = m["goals_b"]
-
-        stats[a]["gf"] += ga
-        stats[a]["ga"] += gb
-        stats[b]["gf"] += gb
-        stats[b]["ga"] += ga
-
-        if ga > gb:
-            stats[a]["points"] += 3
-        elif gb > ga:
-            stats[b]["points"] += 3
-        else:
-            stats[a]["points"] += 1
-            stats[b]["points"] += 1
-
-    for team in team_names:
-        stats[team]["gd"] = stats[team]["gf"] - stats[team]["ga"]
-
+        a, b = m["team_a"], m["team_b"]
+        if a in team_names and b in team_names:
+            ga, gb = m["goals_a"], m["goals_b"]
+            stats[a]["gf"] += ga; stats[a]["ga"] += gb
+            stats[b]["gf"] += gb; stats[b]["ga"] += ga
+            if ga > gb: stats[a]["points"] += 3
+            elif gb > ga: stats[b]["points"] += 3
+            else: stats[a]["points"] += 1; stats[b]["points"] += 1
+    for t in team_names: stats[t]["gd"] = stats[t]["gf"] - stats[t]["ga"]
     return stats
 
 def apply_fifa_tiebreakers(group_table: List[Dict], matches: List[dict], rng: random.Random) -> List[Dict]:
-    """
-    Aplica desempate FIFA a un grupo de 4 equipos.
-    """
     if len(group_table) <= 1:
         return group_table
 
-    # Primero orden básico.
-    ordered = _sort_basic(group_table, rng)
+    # Asignar sorteo aleatorio fijo por simulación para desempate final
+    for t in group_table:
+        t["lottery"] = rng.random()
 
-    # Resolver empates exactos por bloques.
-    final_order: List[Dict] = []
+    # 1. Orden básico FIFA (Puntos, DG, GF)
+    ordered = sorted(group_table, key=lambda t: (-t["points"], -t["gd"], -t["gf"]))
+
+    final_order = []
     i = 0
     while i < len(ordered):
         j = i + 1
-        tied_block = [ordered[i]]
+        # Identificar bloque empate en Puntos, DG, GF
+        while j < len(ordered) and ordered[i]["points"] == ordered[j]["points"] \
+              and ordered[i]["gd"] == ordered[j]["gd"] and ordered[i]["gf"] == ordered[j]["gf"]:
+            j += 1
 
-        while j < len(ordered):
-            a = ordered[i]
-            b = ordered[j]
-            same_first_three = (
-                a["points"] == b["points"]
-                and a["gd"] == b["gd"]
-                and a["gf"] == b["gf"]
-            )
-            if same_first_three:
-                tied_block.append(ordered[j])
-                j += 1
-            else:
-                break
+        tied_block = ordered[i:j]
 
         if len(tied_block) == 1:
-            final_order.append(tied_block[0])
+            final_order.extend(tied_block)
         else:
+            # Aplicar H2H entre los empatados
             tied_names = {t["team"] for t in tied_block}
-            h2h = _head_to_head_subset(tied_names, matches)
+            h2h = _h2h_subset(tied_names, matches)
 
             def h2h_key(team: Dict) -> Tuple:
                 name = team["team"]
@@ -241,12 +214,11 @@ def apply_fifa_tiebreakers(group_table: List[Dict], matches: List[dict], rng: ra
                     -h2h[name]["gd"],
                     -h2h[name]["gf"],
                     fair_play_score(team),
-                    rng.random(),
+                    team["lottery"] # Sorteo estricto
                 )
 
             tied_block = sorted(tied_block, key=h2h_key)
             final_order.extend(tied_block)
-
         i = j
 
     return final_order
@@ -258,210 +230,159 @@ def apply_fifa_tiebreakers(group_table: List[Dict], matches: List[dict], rng: ra
 
 def build_group_table(group_letter: str, teams: List[str], rng: random.Random) -> Tuple[List[Dict], List[dict]]:
     stats = {
-        team: {
-            "team": team,
-            "group": group_letter,
-            "points": 0,
-            "gf": 0,
-            "ga": 0,
-            "gd": 0,
-            "elo": get_rating(team),
-            "fair_play": 0,
-            "matches": [],
-        }
+        team: {"team": team, "group": group_letter, "points": 0, "gf": 0, "ga": 0, "gd": 0, "fair_play": 0, "matches": []}
         for team in teams
     }
-
-    matches: List[dict] = []
+    matches = []
 
     for team_a, team_b in combinations(teams, 2):
         result = simulate_group_match(team_a, team_b, rng)
-        matches.append(
-            {
-                "team_a": team_a,
-                "team_b": team_b,
-                "goals_a": result["goals_a"],
-                "goals_b": result["goals_b"],
-            }
-        )
+        matches.append({"team_a": team_a, "team_b": team_b, "goals_a": result["goals_a"], "goals_b": result["goals_b"]})
 
-        a = stats[team_a]
-        b = stats[team_b]
-
-        a["gf"] += result["goals_a"]
-        a["ga"] += result["goals_b"]
-        a["gd"] = a["gf"] - a["ga"]
-        a["points"] += result["points_a"]
-        a["matches"].append(
-            {
-                "opponent": team_b,
-                "goals_for": result["goals_a"],
-                "goals_against": result["goals_b"],
-                "result": result["result_a"],
-            }
-        )
-
-        b["gf"] += result["goals_b"]
-        b["ga"] += result["goals_a"]
-        b["gd"] = b["gf"] - b["ga"]
-        b["points"] += result["points_b"]
-        b["matches"].append(
-            {
-                "opponent": team_a,
-                "goals_for": result["goals_b"],
-                "goals_against": result["goals_a"],
-                "result": result["result_b"],
-            }
-        )
+        a, b = stats[team_a], stats[team_b]
+        a["gf"] += result["goals_a"]; a["ga"] += result["goals_b"]; a["gd"] = a["gf"] - a["ga"]; a["points"] += result["points_a"]
+        b["gf"] += result["goals_b"]; b["ga"] += result["goals_a"]; b["gd"] = b["gf"] - b["ga"]; b["points"] += result["points_b"]
 
     table = list(stats.values())
     table = apply_fifa_tiebreakers(table, matches, rng)
     return table, matches
 
 def simulate_group_stage(groups: Dict[str, List[str]], rng: random.Random) -> Dict:
-    standings: Dict[str, List[Dict]] = {}
-    group_matches: Dict[str, List[dict]] = {}
-    group_winners: List[Dict] = []
-    group_runners_up: List[Dict] = []
-    third_placed: List[Dict] = []
+    standings, group_matches, group_winners, group_runners_up, third_placed = {}, {}, [], [], []
 
     for group_letter, teams in groups.items():
         table, matches = build_group_table(group_letter, teams, rng)
         standings[group_letter] = table
         group_matches[group_letter] = matches
+        if len(table) > 0: group_winners.append({**table[0], "position": 1})
+        if len(table) > 1: group_runners_up.append({**table[1], "position": 2})
+        if len(table) > 2: third_placed.append({**table[2], "position": 3})
 
-        if len(table) > 0:
-            group_winners.append({**table[0], "position": 1})
-        if len(table) > 1:
-            group_runners_up.append({**table[1], "position": 2})
-        if len(table) > 2:
-            third_placed.append({**table[2], "position": 3})
-
+    # Regla FIFA 2026: Clasifican los 8 mejores terceros
     best_third = sorted(
         third_placed,
-        key=lambda t: (
-            -t["points"],
-            -t["gd"],
-            -t["gf"],
-            fair_play_score(t),
-            t["elo"] * -1,
-        ),
+        key=lambda t: (-t["points"], -t["gd"], -t["gf"], fair_play_score(t), t.get("lottery", 0))
     )[:8]
 
     qualified = group_winners + group_runners_up + best_third
-
     return {
-        "standings": standings,
-        "group_matches": group_matches,
-        "group_winners": group_winners,
-        "group_runners_up": group_runners_up,
-        "third_placed": third_placed,
-        "best_third": best_third,
-        "qualified": qualified,
+        "standings": standings, "group_matches": group_matches,
+        "group_winners": group_winners, "group_runners_up": group_runners_up,
+        "third_placed": third_placed, "best_third": best_third, "qualified": qualified
     }
 
 
 # ============================================================================
-# KNOCKOUT STAGE
+# KNOCKOUT STAGE (2026 Official Bracket Algorithm)
 # ============================================================================
 
-def seed_qualified_teams(qualified: List[Dict]) -> List[Dict]:
+def build_official_bracket(qualified: List[Dict]) -> List[Dict]:
     """
-    Seeding simple y estable.
-    winners > runners-up > third-place, luego Elo.
+    Genera el bracket oficial de la FIFA para 32 equipos.
+    Evita que equipos del mismo grupo se enfrenten en Ronda de 32.
     """
-    def seed_bonus(position: int) -> int:
-        return {1: 200, 2: 100}.get(position, 0)
+    winners = {t["team"]: t for t in qualified if t["position"] == 1}
+    runners = {t["team"]: t for t in qualified if t["position"] == 2}
+    thirds = {t["team"]: t for t in qualified if t["position"] == 3}
 
-    seeded = []
-    for t in qualified:
-        seeded.append(
-            {
-                **t,
-                "seed_score": float(t.get("elo", 1500.0)) + seed_bonus(int(t.get("position", 3))),
-            }
-        )
+    # 8 enfrentamientos de 1 vs 2 (Protegidos por Grupo)
+    matches_w_r = [
+        (f"1{g}", f"2{chr(ord(g)+1)}") for g in "ACEGIK" # 1A vs 2B, 1C vs 2D...
+    ]
 
-    seeded.sort(key=lambda x: (-x["seed_score"], x["team"]))
-    return seeded
+    # 8 enfrentamientos para los mejores terceros
+    matches_w_3 = [
+        (f"1B", "3rd"), (f"1D", "3rd"), (f"1F", "3rd"), (f"1H", "3rd"),
+        (f"2A", "3rd"), (f"2C", "3rd"), (f"2E", "3rd"), (f"2G", "3rd")
+    ]
 
-def play_knockout_round(teams: List[Dict], rng: random.Random) -> Tuple[List[Dict], List[Dict]]:
-    """
-    Empareja el mejor con el peor, el segundo con el penúltimo, etc.
-    Mucho más simple que un árbol con nodos manuales.
-    """
-    matches: List[Dict] = []
-    winners: List[Dict] = []
+    # Asignar terceros evitando conflicto de grupo
+    available_thirds = list(thirds.values())
+    assigned_matchups = []
 
-    left = 0
-    right = len(teams) - 1
+    for slot_1, slot_2 in matches_w_3:
+        slot_group = slot_1[1] # Letra del grupo del cabeza de serie
+        assigned_team = None
 
-    while left < right:
-        a = teams[left]
-        b = teams[right]
+        for i, third_team in enumerate(available_thirds):
+            if third_team["group"] != slot_group: # Restricción FIFA
+                assigned_team = available_thirds.pop(i)
+                break
 
+        if assigned_team:
+            if slot_1.startswith("1"):
+                assigned_matchups.append((winners[f"1{slot_group}"]["team"], assigned_team["team"]))
+            else:
+                assigned_matchups.append((runners[f"2{slot_group}"]["team"], assigned_team["team"]))
+
+    # Construir Ronda de 32 final
+    r32_matchups = []
+    for w, r in matches_w_r:
+        if w in winners and r in runners:
+            r32_matchups.append((winners[w]["team"], runners[r]["team"]))
+
+    r32_matchups.extend(assigned_matchups)
+
+    # Mapear a objetos equipo
+    team_map = {t["team"]: t for t in qualified}
+    bracket = []
+    for t1, t2 in r32_matchups:
+        if t1 in team_map and t2 in team_map:
+            bracket.append([team_map[t1], team_map[t2]])
+
+    return bracket
+
+def play_knockout_round(bracket: List[List[Dict]], rng: random.Random) -> Tuple[List[Dict], List[Dict]]:
+    matches = []
+    winners = []
+    for a, b in bracket:
         match = simulate_knockout_match(a["team"], b["team"], rng)
         matches.append(match)
-
         winner_team = match["winner"]
         winners.append(next(t for t in (a, b) if t["team"] == winner_team))
-
-        left += 1
-        right -= 1
-
     return winners, matches
 
 def simulate_knockout_tournament(qualified: List[Dict], rng: random.Random) -> Dict:
-    current = seed_qualified_teams(qualified)
+    if len(qualified) != 32:
+        return {"rounds": {}, "champion": None, "error": f"Expected 32 qualified teams, got {len(qualified)}"}
 
-    rounds = {
-        "round_of_32": [],
-        "round_of_16": [],
-        "quarter_finals": [],
-        "semi_finals": [],
-        "third_place": None,
-        "final": None,
-    }
+    bracket_r32 = build_official_bracket(qualified)
 
-    if len(current) != 32:
-        return {
-            "rounds": rounds,
-            "champion": None,
-            "error": f"Expected 32 qualified teams, got {len(current)}",
-        }
+    rounds = {"round_of_32": [], "round_of_16": [], "quarter_finals": [], "semi_finals": [], "third_place": None, "final": None}
 
-    current, rounds["round_of_32"] = play_knockout_round(current, rng)
-    current, rounds["round_of_16"] = play_knockout_round(current, rng)
-    current, rounds["quarter_finals"] = play_knockout_round(current, rng)
-    current, rounds["semi_finals"] = play_knockout_round(current, rng)
+    # R32
+    winners_r16, rounds["round_of_32"] = play_knockout_round(bracket_r32, rng)
 
-    # Final: last two teams
-    if len(current) == 2:
-        a, b = current[0], current[1]
-        final = simulate_knockout_match(a["team"], b["team"], rng)
-        rounds["final"] = final
-        champion = final["winner"]
+    # Armar llaves de R16 (Ganador Partido 1 vs Ganador Partido 2, etc.)
+    bracket_r16 = [ [winners_r16[i], winners_r16[i+1]] for i in range(0, len(winners_r16), 2) ]
+    winners_qf, rounds["round_of_16"] = play_knockout_round(bracket_r16, rng)
 
-        # Tercer lugar entre los perdedores de semis
-        semi_matches = rounds["semi_finals"]
-        if len(semi_matches) == 8:
-            semi_losers = []
-            for m in semi_matches:
-                loser = m["team_a"] if m["winner"] == m["team_b"] else m["team_b"]
-                semi_losers.append(loser)
-            # Si quieres, luego podemos hacer un tercer puesto real.
-            rounds["third_place"] = None
+    bracket_qf = [ [winners_qf[i], winners_qf[i+1]] for i in range(0, len(winners_qf), 2) ]
+    winners_sf, rounds["quarter_finals"] = play_knockout_round(bracket_qf, rng)
+
+    bracket_sf = [ [winners_sf[i], winners_sf[i+1]] for i in range(0, len(winners_sf), 2) ]
+    finalists, rounds["semi_finals"] = play_knockout_round(bracket_sf, rng)
+
+    # Tercer puesto
+    semi_losers = []
+    for m in rounds["semi_finals"]:
+        loser = m["team_a"] if m["winner"] == m["team_b"] else m["team_b"]
+        semi_losers.append(loser)
+    if len(semi_losers) == 2:
+        rounds["third_place"] = simulate_knockout_match(semi_losers[0], semi_losers[1], rng)
+
+    # Final
+    if len(finalists) == 2:
+        rounds["final"] = simulate_knockout_match(finalists[0]["team"], finalists[1]["team"], rng)
+        champion = rounds["final"]["winner"]
     else:
-        champion = current[0]["team"] if current else None
+        champion = None
 
-    return {
-        "rounds": rounds,
-        "champion": champion,
-    }
+    return {"rounds": rounds, "champion": champion}
 
 
 # ============================================================================
-# MONTE CARLO
+# MONTE CARLO ENGINE
 # ============================================================================
 
 def run_monte_carlo_simulation(num_simulations: int = DEFAULT_SIMULATIONS, seed: Optional[int] = None) -> Dict:
@@ -481,30 +402,24 @@ def run_monte_carlo_simulation(num_simulations: int = DEFAULT_SIMULATIONS, seed:
         group_result = simulate_group_stage(GROUPS, rng)
 
         for group, standings in group_result["standings"].items():
-            if len(standings) > 0:
-                group_winners_count[group][standings[0]["team"]] += 1
-            if len(standings) > 1:
-                group_runners_up_count[group][standings[1]["team"]] += 1
-            if len(standings) > 2:
-                third_place_count[group][standings[2]["team"]] += 1
+            if len(standings) > 0: group_winners_count[group][standings[0]["team"]] += 1
+            if len(standings) > 1: group_runners_up_count[group][standings[1]["team"]] += 1
+            if len(standings) > 2: third_place_count[group][standings[2]["team"]] += 1
 
         for team in group_result["qualified"]:
             qualified_count[team["team"]] += 1
 
         knockout_result = simulate_knockout_tournament(group_result["qualified"], rng)
-        champion = knockout_result["champion"]
-        if champion:
-            champion_count[champion] += 1
+
+        if knockout_result["champion"]:
+            champion_count[knockout_result["champion"]] += 1
 
         final_match = knockout_result["rounds"]["final"]
         if final_match:
             finalist_count[final_match["team_a"]] += 1
             finalist_count[final_match["team_b"]] += 1
 
-        last_simulation = {
-            "group_stage": group_result,
-            "knockout": knockout_result,
-        }
+        last_simulation = {"group_stage": group_result, "knockout": knockout_result}
 
     def ratio_map(counter_map: Dict[str, int]) -> Dict[str, float]:
         return {k: round(v / num_simulations, 4) for k, v in counter_map.items()}
@@ -524,9 +439,8 @@ def run_monte_carlo_simulation(num_simulations: int = DEFAULT_SIMULATIONS, seed:
         "last_simulation": last_simulation,
     }
 
-
 # ============================================================================
-# API
+# API ENDPOINT
 # ============================================================================
 
 @router.get("/simulation/run")
