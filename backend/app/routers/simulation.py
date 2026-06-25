@@ -276,18 +276,20 @@ def simulate_group_stage(groups: Dict[str, List[str]], rng: random.Random) -> Di
 # KNOCKOUT STAGE (2026 Official Bracket Algorithm)
 # ============================================================================
 
-def build_official_bracket(qualified: List[Dict]) -> List[Dict]:
+def build_official_bracket(qualified: List[Dict], rng: random.Random) -> List[Dict]:
     """
     Genera el bracket oficial de la FIFA para 32 equipos.
     Evita que equipos del mismo grupo se enfrenten en Ronda de 32.
     """
-    winners = {t["team"]: t for t in qualified if t["position"] == 1}
-    runners = {t["team"]: t for t in qualified if t["position"] == 2}
+    winners = {f"1{t['group']}": t for t in qualified if t["position"] == 1}
+    runners = {f"2{t['group']}": t for t in qualified if t["position"] == 2}
     thirds = {t["team"]: t for t in qualified if t["position"] == 3}
 
     # 8 enfrentamientos de 1 vs 2 (Protegidos por Grupo)
     matches_w_r = [
-        (f"1{g}", f"2{chr(ord(g)+1)}") for g in "ACEGIK" # 1A vs 2B, 1C vs 2D...
+        (f"1{g}", f"2{chr(ord(g)+1)}") for g in "ACEGIK"  # 1A vs 2B, 1C vs 2D...
+    ] + [
+        ("1J", "2I"), ("1L", "2K")  # FIX: Completar bracket a 16 partidos
     ]
 
     # 8 enfrentamientos para los mejores terceros
@@ -300,24 +302,63 @@ def build_official_bracket(qualified: List[Dict]) -> List[Dict]:
     available_thirds = list(thirds.values())
     assigned_matchups = []
 
-    for slot_1, slot_2 in matches_w_3:
-        slot_group = slot_1[1] # Letra del grupo del cabeza de serie
-        assigned_team = None
+    # FIX: Intentar varias permutaciones para encontrar asignación válida
+    for _ in range(100):
+        temp_thirds = available_thirds[:]
+        rng.shuffle(temp_thirds)
+        temp_assigned = []
+        valid = True
 
-        for i, third_team in enumerate(available_thirds):
-            if third_team["group"] != slot_group: # Restricción FIFA
-                assigned_team = available_thirds.pop(i)
+        for slot_1, slot_2 in matches_w_3:
+            slot_group = slot_1[1]  # Letra del grupo del cabeza de serie
+            assigned_team = None
+            for i, third_team in enumerate(temp_thirds):
+                if third_team["group"] != slot_group:  # Restricción FIFA
+                    assigned_team = temp_thirds.pop(i)
+                    break
+            if not assigned_team:
+                valid = False
                 break
 
-        if assigned_team:
             if slot_1.startswith("1"):
                 winner_key = f"1{slot_group}"
                 if winner_key not in winners:
-                    print(f"⚠️ Bracket: clave {winner_key} no encontrada en winners. Disponible: {list(winners.keys())}")
-                    continue
-                assigned_matchups.append((winners[winner_key]["team"], assigned_team["team"]))
+                    valid = False
+                    break
+                temp_assigned.append((winners[winner_key]["team"], assigned_team["team"]))
             else:
-                assigned_matchups.append((runners[f"2{slot_group}"]["team"], assigned_team["team"]))
+                runner_key = f"2{slot_group}"
+                if runner_key not in runners:
+                    valid = False
+                    break
+                temp_assigned.append((runners[runner_key]["team"], assigned_team["team"]))
+
+        if valid:
+            assigned_matchups = temp_assigned
+            break
+
+    # Fallback: asignación greedy sin shuffle si todo falla
+    if not assigned_matchups:
+        temp_thirds = available_thirds[:]
+        for slot_1, slot_2 in matches_w_3:
+            slot_group = slot_1[1]
+            assigned_team = None
+            for i, third_team in enumerate(temp_thirds):
+                if third_team["group"] != slot_group:
+                    assigned_team = temp_thirds.pop(i)
+                    break
+            if not assigned_team and temp_thirds:
+                assigned_team = temp_thirds.pop(0)
+
+            if assigned_team:
+                if slot_1.startswith("1"):
+                    winner_key = f"1{slot_group}"
+                    if winner_key in winners:
+                        assigned_matchups.append((winners[winner_key]["team"], assigned_team["team"]))
+                else:
+                    runner_key = f"2{slot_group}"
+                    if runner_key in runners:
+                        assigned_matchups.append((runners[runner_key]["team"], assigned_team["team"]))
 
     # Construir Ronda de 32 final
     r32_matchups = []
@@ -350,19 +391,37 @@ def simulate_knockout_tournament(qualified: List[Dict], rng: random.Random) -> D
     if len(qualified) != 32:
         return {"rounds": {}, "champion": None, "error": f"Expected 32 qualified teams, got {len(qualified)}"}
 
-    bracket_r32 = build_official_bracket(qualified)
+    bracket_r32 = build_official_bracket(qualified, rng)
+
+    # FIX: Validar que el bracket tenga exactamente 16 partidos
+    if len(bracket_r32) != 16:
+        return {
+            "rounds": {},
+            "champion": None,
+            "error": f"Bracket R32 inválido: {len(bracket_r32)} enfrentamientos (se esperaban 16)"
+        }
 
     rounds = {"round_of_32": [], "round_of_16": [], "quarter_finals": [], "semi_finals": [], "third_place": None, "final": None}
 
     # R32
     winners_r16, rounds["round_of_32"] = play_knockout_round(bracket_r32, rng)
 
+    # FIX: Validar tamaños pares antes de armar llaves
+    if len(winners_r16) % 2 != 0:
+        return {"rounds": rounds, "champion": None, "error": f"R16 bracket inválido: {len(winners_r16)} equipos"}
+
     # Armar llaves de R16 (Ganador Partido 1 vs Ganador Partido 2, etc.)
     bracket_r16 = [ [winners_r16[i], winners_r16[i+1]] for i in range(0, len(winners_r16), 2) ]
     winners_qf, rounds["round_of_16"] = play_knockout_round(bracket_r16, rng)
 
+    if len(winners_qf) % 2 != 0:
+        return {"rounds": rounds, "champion": None, "error": f"QF bracket inválido: {len(winners_qf)} equipos"}
+
     bracket_qf = [ [winners_qf[i], winners_qf[i+1]] for i in range(0, len(winners_qf), 2) ]
     winners_sf, rounds["quarter_finals"] = play_knockout_round(bracket_qf, rng)
+
+    if len(winners_sf) % 2 != 0:
+        return {"rounds": rounds, "champion": None, "error": f"SF bracket inválido: {len(winners_sf)} equipos"}
 
     bracket_sf = [ [winners_sf[i], winners_sf[i+1]] for i in range(0, len(winners_sf), 2) ]
     finalists, rounds["semi_finals"] = play_knockout_round(bracket_sf, rng)

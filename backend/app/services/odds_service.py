@@ -38,7 +38,7 @@ except ImportError:
 # ── Constantes ──────────────────────────────────────────────────────────────
 CACHE_KEY_ALL_ODDS = "wc2026:all_odds_cache"
 CACHE_KEY_ALL_ODDS_META = "wc2026:all_odds_meta"
-CACHE_TTL_ODDS = 4 * 3600          # 4 horas de caché (ajustable)
+CACHE_TTL_ODDS = 8 * 3600          # 8 horas de caché (ajustable)
 STALE_TTL_ODDS = 48 * 3600         # Si el proveedor falla, aceptar caché de hasta 48h
 
 # The Odds API
@@ -266,109 +266,27 @@ def set_cached_events(events: List[Dict], provider: str):
 # PROVEEDOR 1: ODDS PAPI  (GRATIS — 350+ bookmakers)
 # =============================================================================
 # Docs: https://oddspapi.io/blog/world-cup-odds-api-2026-fifa/
-# Endpoint correcto: /v4/fixtures (NO /v4/odds)
-# Parametro requerido: market=matchWinner
+# Endpoint: /v4/fixtures con sportId=10, from/to (max 10 dias)
+# Filtro: tournamentName == "World Cup"
+# Nombres: participant1Name / participant2Name
+# Free tier: 250 peticiones/mes. Con cache de 8h y ventanas inteligentes
+#   = ~3 peticiones/dia max = ~90/mes. Sobrado.
 # =============================================================================
 
-async def _papi_find_world_cup_tournament_id() -> Optional[str]:
-    """Busca el ID del torneo World Cup. No bloquea si falla."""
-    cache_key = "wc2026:papi_tournament_id"
-    cached = _cache_get(cache_key)
-    if cached:
-        return cached
-    if not ODDS_PAPI_API_KEY:
-        print("⚠️ OddsPapi: Sin API key configurada")
-        return None
-    try:
-        headers = {
-            "User-Agent": "GolazoWorldCup/1.0",
-            "Accept": "application/json",
-        }
-        async with httpx.AsyncClient(timeout=15, headers=headers) as client:
-            resp = await client.get(
-                f"{PAPI_BASE}/tournaments",
-                params={"apiKey": ODDS_PAPI_API_KEY, "sportId": PAPI_SOCCER_SPORT_ID}
-            )
-            if resp.status_code == 403:
-                body = resp.text[:300]
-                print(f"⚠️ OddsPapi 403 FORBIDDEN. Body: {body}")
-                print(f"⚠️ Posibles causas: cuenta no verificada, key inactiva, o IP bloqueada")
-                print(f"⚠️ Key configurada: ...{ODDS_PAPI_API_KEY[-6:]}")
-                return None
-            if resp.status_code == 401:
-                print(f"⚠️ OddsPapi 401: API key inválida. Key: ...{ODDS_PAPI_API_KEY[-6:]}")
-                return None
-            if resp.status_code != 200:
-                print(f"⚠️ OddsPapi tournaments: HTTP {resp.status_code} - {resp.text[:200]}")
-                return None
-            data = resp.json()
-            if isinstance(data, dict):
-                tournaments = data.get("data", data.get("tournaments", []))
-            elif isinstance(data, list):
-                tournaments = data
-            else:
-                return None
-            if not isinstance(tournaments, list):
-                return None
-            wc_id = None
-            for t in tournaments:
-                if not isinstance(t, dict):
-                    continue
-                name = t.get("name", "") or t.get("tournamentName", "")
-                name_lower = normalize_raw(name)
-                if "world cup" in name_lower or "fifa" in name_lower:
-                    wc_id = str(t.get("id", ""))
-                    if "2026" in name:
-                        break
-            if wc_id:
-                _cache_set(cache_key, wc_id, 7 * 24 * 3600)
-                print(f"✅ OddsPapi: Tournament ID = {wc_id}")
-            else:
-                print(f"⚠️ OddsPapi: {len(tournaments)} torneos, ninguno World Cup:")
-                for t in tournaments[:10]:
-                    n = t.get("name", t.get("tournamentName", "?"))
-                    tid = t.get("id", "?")
-                    print(f"   - {n} (id={tid})")
-            return wc_id
-    except Exception as e:
-        print(f"❌ OddsPapi tournament lookup: {e}")
-        return None
-
-
-def _papi_extract_fixtures(data: Any) -> Optional[List[Dict]]:
-    """Extrae la lista de fixtures de cualquier formato de respuesta."""
-    if isinstance(data, list):
-        return data
-    if isinstance(data, dict):
-        for key in ["data", "fixtures", "events", "matches", "results", "items"]:
-            if key in data and isinstance(data[key], list):
-                return data[key]
-        if "id" in data or "homeTeam" in data or "home_team" in data:
-            return [data]
-    return None
-
-
-def _is_world_cup_fixture(fixture: Dict) -> bool:
-    """Determina si un fixture pertenece al Mundial."""
-    tournament = fixture.get("tournament", {})
-    if isinstance(tournament, dict):
-        tname = tournament.get("name", "") or tournament.get("tournamentName", "")
-    elif isinstance(tournament, str):
-        tname = tournament
-    else:
-        tname = ""
-    league = fixture.get("league", "") or fixture.get("competition", "") or ""
-    if isinstance(league, dict):
-        league = league.get("name", "")
-    combined = f"{tname} {league}".lower()
-    return "world cup" in combined or "mundial" in combined or "fifa" in combined
+# Ventanas de 10 dias para el Mundial 2026 (jun 11 - jul 19)
+WC2026_DATE_WINDOWS = [
+    ("2026-06-11", "2026-06-20"),
+    ("2026-06-21", "2026-06-30"),
+    ("2026-07-01", "2026-07-10"),
+    ("2026-07-11", "2026-07-19"),
+]
 
 
 def _papi_extract_outcomes(bk: Dict, home: str, away: str) -> List[Dict]:
-    """Extrae outcomes home/draw/away de un bookmaker. Maneja multiples formatos."""
+    """Extrae outcomes home/draw/away de un bookmaker OddsPapi."""
     outcomes = []
 
-    # Caso 1: odds como dict {matchWinner: {home: 1.85, draw: 3.50, away: 4.20}}
+    # Caso 1: odds como dict {"matchWinner": {"1": 1.85, "X": 3.50, "2": 4.20}}
     odds_dict = bk.get("odds", {})
     if isinstance(odds_dict, dict):
         for market_key in ["matchWinner", "h2h", "moneyline", "1x2", "match_winner", "winner"]:
@@ -376,7 +294,7 @@ def _papi_extract_outcomes(bk: Dict, home: str, away: str) -> List[Dict]:
                 market = odds_dict[market_key]
                 if isinstance(market, dict):
                     h = market.get("home") or market.get("1")
-                    d = market.get("draw") or market.get("x")
+                    d = market.get("draw") or market.get("x") or market.get("X")
                     a = market.get("away") or market.get("2")
                     if h:
                         outcomes.append({"name": home, "price": float(h)})
@@ -393,89 +311,56 @@ def _papi_extract_outcomes(bk: Dict, home: str, away: str) -> List[Dict]:
         for m in markets:
             if not isinstance(m, dict):
                 continue
-            mkey = str(m.get("key", "") or m.get("marketName", "") or m.get("name", "")).lower()
+            mkey = str(m.get("key", "") or m.get("name", "")).lower()
             if mkey not in ["matchwinner", "h2h", "moneyline", "1x2", "match_winner", "winner"]:
                 continue
-            m_outcomes = m.get("outcomes", [])
-            if isinstance(m_outcomes, list):
-                for o in m_outcomes:
-                    if not isinstance(o, dict):
-                        continue
-                    o_name = str(o.get("name", "") or o.get("outcome", "") or o.get("label", ""))
-                    o_price = o.get("price") or o.get("odds") or o.get("value") or o.get("line")
-                    if o_name and o_price:
-                        name_lower = o_name.lower()
-                        if name_lower in ["home", "1", "local"]:
-                            o_name = home
-                        elif name_lower in ["away", "2", "visitante"]:
-                            o_name = away
-                        elif name_lower in ["draw", "tie", "x", "empate"]:
-                            o_name = "Draw"
-                        outcomes.append({"name": o_name, "price": float(o_price)})
-                if outcomes:
-                    return outcomes
-
-    # Caso 3: outcomes directo en el bookmaker
-    bk_outcomes = bk.get("outcomes", [])
-    if isinstance(bk_outcomes, list):
-        for o in bk_outcomes:
-            if not isinstance(o, dict):
-                continue
-            o_name = str(o.get("name", "") or o.get("outcome", ""))
-            o_price = o.get("price") or o.get("odds") or o.get("value")
-            if o_name and o_price:
-                name_lower = o_name.lower()
-                if name_lower in ["home", "1"]:
-                    o_name = home
-                elif name_lower in ["away", "2"]:
-                    o_name = away
-                elif name_lower in ["draw", "tie", "x"]:
-                    o_name = "Draw"
-                outcomes.append({"name": o_name, "price": float(o_price)})
-        if outcomes:
-            return outcomes
+            for o in m.get("outcomes", []):
+                if not isinstance(o, dict):
+                    continue
+                o_name = str(o.get("name", "") or o.get("outcome", "") or o.get("label", ""))
+                o_price = o.get("price") or o.get("odds") or o.get("value")
+                if o_name and o_price:
+                    nl = o_name.lower()
+                    if nl in ["home", "1", "local"]:
+                        o_name = home
+                    elif nl in ["away", "2", "visitante"]:
+                        o_name = away
+                    elif nl in ["draw", "tie", "x", "empate"]:
+                        o_name = "Draw"
+                    outcomes.append({"name": o_name, "price": float(o_price)})
+            if outcomes:
+                return outcomes
 
     return outcomes
 
 
 def _normalize_papi_fixture(fixture: Dict) -> Optional[Dict]:
-    """Convierte un fixture de OddsPapi al formato interno. Super-flexible."""
+    """Convierte fixture de OddsPapi a formato interno."""
     try:
-        home = (fixture.get("homeTeam") or fixture.get("home_team") or
-                fixture.get("homeName") or fixture.get("home_name") or
-                fixture.get("home", ""))
-        away = (fixture.get("awayTeam") or fixture.get("away_team") or
-                fixture.get("awayName") or fixture.get("away_name") or
-                fixture.get("away", ""))
-        if not home or not away:
-            participants = fixture.get("participants", fixture.get("teams", []))
-            if isinstance(participants, list):
-                for p in participants:
-                    if not isinstance(p, dict):
-                        continue
-                    pos = str(p.get("position", p.get("type", p.get("role", "")))).lower()
-                    pname = p.get("name", "") or p.get("teamName", "")
-                    if "home" in pos or "1" in pos:
-                        home = pname
-                    elif "away" in pos or "2" in pos:
-                        away = pname
-                    elif not home:
-                        home = pname
-                    elif not away:
-                        away = pname
+        # OddsPapi usa participant1Name / participant2Name (NO homeTeam/awayTeam)
+        home = (fixture.get("participant1Name") or
+                fixture.get("homeTeam") or fixture.get("home_team") or
+                fixture.get("homeName") or fixture.get("home", ""))
+        away = (fixture.get("participant2Name") or
+                fixture.get("awayTeam") or fixture.get("away_team") or
+                fixture.get("awayName") or fixture.get("away", ""))
+
         if not home or not away:
             return None
+
+        # Skip fixtures sin odds
+        if not fixture.get("hasOdds", True):
+            return None
+
         event_id = str(fixture.get("id", ""))
-        raw_bks = fixture.get("bookmakers", fixture.get("books", []))
-        if not raw_bks and "odds" in fixture:
-            raw_bks = [{"id": "consolidated", "name": "Consolidated", "odds": fixture["odds"]}]
+        raw_bks = fixture.get("bookmakers", [])
         normalized_bks = []
+
         for bk in raw_bks:
             if not isinstance(bk, dict):
                 continue
             bk_key = str(bk.get("id", "") or bk.get("key", "") or "").lower()
-            bk_title = (bk.get("name", "") or bk.get("bookmakerName", "") or
-                        bk.get("title", "") or bk_key)
+            bk_title = bk.get("name", "") or bk.get("bookmakerName", "") or bk_key
             if not bk_key:
                 continue
             bk_outcomes = _papi_extract_outcomes(bk, home, away)
@@ -484,11 +369,13 @@ def _normalize_papi_fixture(fixture: Dict) -> Optional[Dict]:
             normalized_bks.append({
                 "key": bk_key,
                 "title": bk_title,
-                "last_update": str(fixture.get("lastUpdate", fixture.get("updatedAt", ""))),
+                "last_update": str(fixture.get("lastUpdate", "")),
                 "markets": [{"key": "h2h", "outcomes": bk_outcomes}]
             })
+
         if not normalized_bks:
             return None
+
         return {
             "id": event_id,
             "home_team": home,
@@ -502,130 +389,66 @@ def _normalize_papi_fixture(fixture: Dict) -> Optional[Dict]:
 
 
 async def _papi_fetch_all_odds() -> Optional[List[Dict]]:
-    """
-    Obtiene TODAS las odds del Mundial desde OddsPapi.
-    Prueba multiples endpoints/parametros hasta encontrar datos.
-    """
+    """Obtiene TODAS las odds del Mundial usando ventanas de fecha (max 10 dias)."""
     if not ODDS_PAPI_API_KEY:
         return None
 
-    wc_tournament_id = await _papi_find_world_cup_tournament_id()
+    today = time.strftime("%Y-%m-%d")
+    all_normalized = []
+    headers = {"User-Agent": "GolazoWorldCup/1.0", "Accept": "application/json"}
 
-    strategies = []
+    for date_from, date_to in WC2026_DATE_WINDOWS:
+        # Saltar ventanas ya pasadas (ahorra peticiones)
+        if today > date_to:
+            continue
 
-    if wc_tournament_id:
-        strategies.append({
-            "desc": "fixtures+tid+market",
-            "endpoint": "fixtures",
-            "params": {
-                "apiKey": ODDS_PAPI_API_KEY,
-                "sportId": PAPI_SOCCER_SPORT_ID,
-                "tournamentId": wc_tournament_id,
-                "market": "matchWinner",
-            }
-        })
-        strategies.append({
-            "desc": "odds+tid+market",
-            "endpoint": "odds",
-            "params": {
-                "apiKey": ODDS_PAPI_API_KEY,
-                "sportId": PAPI_SOCCER_SPORT_ID,
-                "tournamentId": wc_tournament_id,
-                "market": "matchWinner",
-            }
-        })
-        strategies.append({
-            "desc": "fixtures+tid",
-            "endpoint": "fixtures",
-            "params": {
-                "apiKey": ODDS_PAPI_API_KEY,
-                "sportId": PAPI_SOCCER_SPORT_ID,
-                "tournamentId": wc_tournament_id,
-            }
-        })
-
-    strategies.append({
-        "desc": "fixtures+market",
-        "endpoint": "fixtures",
-        "params": {
-            "apiKey": ODDS_PAPI_API_KEY,
-            "sportId": PAPI_SOCCER_SPORT_ID,
-            "market": "matchWinner",
-        }
-    })
-    strategies.append({
-        "desc": "odds+market",
-        "endpoint": "odds",
-        "params": {
-            "apiKey": ODDS_PAPI_API_KEY,
-            "sportId": PAPI_SOCCER_SPORT_ID,
-            "market": "matchWinner",
-        }
-    })
-    strategies.append({
-        "desc": "fixtures+solo",
-        "endpoint": "fixtures",
-        "params": {
-            "apiKey": ODDS_PAPI_API_KEY,
-            "sportId": PAPI_SOCCER_SPORT_ID,
-        }
-    })
-    strategies.append({
-        "desc": "odds+solo",
-        "endpoint": "odds",
-        "params": {
-            "apiKey": ODDS_PAPI_API_KEY,
-            "sportId": PAPI_SOCCER_SPORT_ID,
-        }
-    })
-
-    for strat in strategies:
-        url = f"{PAPI_BASE}/{strat['endpoint']}"
         try:
-            async with httpx.AsyncClient(timeout=20, headers={
-                "User-Agent": "GolazoWorldCup/1.0",
-                "Accept": "application/json",
-            }) as client:
-                resp = await client.get(url, params=strat["params"])
+            async with httpx.AsyncClient(timeout=20, headers=headers) as client:
+                resp = await client.get(
+                    f"{PAPI_BASE}/fixtures",
+                    params={
+                        "apiKey": ODDS_PAPI_API_KEY,
+                        "sportId": PAPI_SOCCER_SPORT_ID,
+                        "from": date_from,
+                        "to": date_to,
+                    }
+                )
                 if resp.status_code == 429:
-                    print(f"⚠️ OddsPapi [{strat['desc']}]: Rate limit (429)")
-                    return None
+                    print("⚠️ OddsPapi: Rate limit (429). Deteniendo ventanas.")
+                    break
+                if resp.status_code == 403:
+                    print(f"⚠️ OddsPapi: 403 Forbidden. Cuenta no verificada o IP bloqueada.")
+                    break
                 if resp.status_code != 200:
-                    print(f"⚠️ OddsPapi [{strat['desc']}]: HTTP {resp.status_code}")
+                    print(f"⚠️ OddsPapi [{date_from}→{date_to}]: HTTP {resp.status_code}")
                     continue
-                data = resp.json()
-                fixtures = _papi_extract_fixtures(data)
-                if not fixtures:
-                    print(f"⚠️ OddsPapi [{strat['desc']}]: Sin fixtures. Respuesta: {str(data)[:300]}")
+
+                fixtures = resp.json()
+                if not isinstance(fixtures, list):
                     continue
-                print(f"📊 OddsPapi [{strat['desc']}]: {len(fixtures)} fixtures crudos")
-                has_tid = "tid" in strat["desc"]
-                if not has_tid:
-                    wc_fixtures = [f for f in fixtures if _is_world_cup_fixture(f)]
-                    print(f"   World Cup: {len(wc_fixtures)}/{len(fixtures)}")
-                    if not wc_fixtures:
-                        continue
-                    fixtures = wc_fixtures
-                normalized = []
-                for fixture in fixtures:
+
+                # Filtrar solo World Cup (tal como muestra la documentacion)
+                wc = [f for f in fixtures if f.get("tournamentName") == "World Cup"]
+                for fixture in wc:
                     evt = _normalize_papi_fixture(fixture)
-                    if evt and evt.get("bookmakers"):
-                        normalized.append(evt)
-                if normalized:
-                    print(f"✅ OddsPapi: {len(normalized)} partidos con odds")
-                    return normalized
-                else:
-                    print(f"⚠️ OddsPapi: fixtures sin odds parseables. Primer fixture: {str(fixtures[0])[:400]}")
+                    if evt:
+                        all_normalized.append(evt)
+
+                print(f"📊 OddsPapi [{date_from}→{date_to}]: {len(wc)} fixtures WC")
+
         except httpx.TimeoutException:
-            print(f"⚠️ OddsPapi [{strat['desc']}]: Timeout")
+            print(f"⚠️ OddsPapi [{date_from}→{date_to}]: Timeout")
             continue
         except Exception as e:
-            print(f"❌ OddsPapi [{strat['desc']}]: {e}")
+            print(f"❌ OddsPapi [{date_from}→{date_to}]: {e}")
             continue
 
-    print("❌ OddsPapi: Todas las estrategias fallaron")
-    return None
+    if all_normalized:
+        print(f"✅ OddsPapi: {len(all_normalized)} partidos con odds obtenidos")
+        return all_normalized
 
+    print("❌ OddsPapi: Sin datos de World Cup")
+    return None
 
 # =============================================================================
 # PROVEEDOR 2: THE ODDS API  (FALLBACK — tu proveedor actual)
