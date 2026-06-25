@@ -277,15 +277,29 @@ async def _papi_find_world_cup_tournament_id() -> Optional[str]:
     if cached:
         return cached
     if not ODDS_PAPI_API_KEY:
+        print("⚠️ OddsPapi: Sin API key configurada")
         return None
     try:
-        async with httpx.AsyncClient(timeout=15) as client:
+        headers = {
+            "User-Agent": "GolazoWorldCup/1.0",
+            "Accept": "application/json",
+        }
+        async with httpx.AsyncClient(timeout=15, headers=headers) as client:
             resp = await client.get(
                 f"{PAPI_BASE}/tournaments",
                 params={"apiKey": ODDS_PAPI_API_KEY, "sportId": PAPI_SOCCER_SPORT_ID}
             )
+            if resp.status_code == 403:
+                body = resp.text[:300]
+                print(f"⚠️ OddsPapi 403 FORBIDDEN. Body: {body}")
+                print(f"⚠️ Posibles causas: cuenta no verificada, key inactiva, o IP bloqueada")
+                print(f"⚠️ Key configurada: ...{ODDS_PAPI_API_KEY[-6:]}")
+                return None
+            if resp.status_code == 401:
+                print(f"⚠️ OddsPapi 401: API key inválida. Key: ...{ODDS_PAPI_API_KEY[-6:]}")
+                return None
             if resp.status_code != 200:
-                print(f"⚠️ OddsPapi tournaments: HTTP {resp.status_code}")
+                print(f"⚠️ OddsPapi tournaments: HTTP {resp.status_code} - {resp.text[:200]}")
                 return None
             data = resp.json()
             if isinstance(data, dict):
@@ -568,7 +582,10 @@ async def _papi_fetch_all_odds() -> Optional[List[Dict]]:
     for strat in strategies:
         url = f"{PAPI_BASE}/{strat['endpoint']}"
         try:
-            async with httpx.AsyncClient(timeout=20) as client:
+            async with httpx.AsyncClient(timeout=20, headers={
+                "User-Agent": "GolazoWorldCup/1.0",
+                "Accept": "application/json",
+            }) as client:
                 resp = await client.get(url, params=strat["params"])
                 if resp.status_code == 429:
                     print(f"⚠️ OddsPapi [{strat['desc']}]: Rate limit (429)")

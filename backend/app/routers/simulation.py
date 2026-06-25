@@ -311,7 +311,11 @@ def build_official_bracket(qualified: List[Dict]) -> List[Dict]:
 
         if assigned_team:
             if slot_1.startswith("1"):
-                assigned_matchups.append((winners[f"1{slot_group}"]["team"], assigned_team["team"]))
+                winner_key = f"1{slot_group}"
+                if winner_key not in winners:
+                    print(f"⚠️ Bracket: clave {winner_key} no encontrada en winners. Disponible: {list(winners.keys())}")
+                    continue
+                assigned_matchups.append((winners[winner_key]["team"], assigned_team["team"]))
             else:
                 assigned_matchups.append((runners[f"2{slot_group}"]["team"], assigned_team["team"]))
 
