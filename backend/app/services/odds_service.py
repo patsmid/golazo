@@ -287,30 +287,43 @@ def get_prediction_from_odds(odds: Dict) -> Dict:
     }
 
 async def get_enriched_odds(home_team: str, away_team: str) -> Dict:
-    """Obtiene odds enriquecidas para un partido."""
-    odds_data = await fetch_odds_for_match(home_team, away_team)
-    if not odds_data:
+    """Obtiene odds enriquecidas para un partido con manejo de errores silencioso."""
+    try:
+        odds_data = await fetch_odds_for_match(home_team, away_team)
+        if not odds_data:
+            return {
+                "top_bookmakers": [],
+                "consensus": {},
+                "prediction": {},
+                "score_prediction": {},
+                "available": False,
+                "error": "No se pudieron obtener odds"
+            }
+
+        bookmakers = odds_data.get("bookmakers", [])
+        home_name = odds_data.get("home_team", "")
+        away_name = odds_data.get("away_team", "")
+
+        top_bks = extract_top_bookmakers(bookmakers, home_name, away_name, limit=3)
+        consensus = calculate_consensus(bookmakers, home_name, away_name)
+        prediction = get_prediction_from_odds(consensus)
+        score_pred = estimate_score_from_odds(consensus)
+
+        return {
+            "top_bookmakers": top_bks,
+            "consensus": consensus,
+            "prediction": prediction,
+            "score_prediction": score_pred,
+            "available": True
+        }
+
+    except Exception as e:
+        print(f"❌ Error obteniendo odds para {home_team} vs {away_team}: {e}")
         return {
             "top_bookmakers": [],
             "consensus": {},
             "prediction": {},
             "score_prediction": {},
-            "available": False
+            "available": False,
+            "error": str(e)[:50]
         }
-
-    bookmakers = odds_data.get("bookmakers", [])
-    home_name = odds_data.get("home_team", "")
-    away_name = odds_data.get("away_team", "")
-
-    top_bks = extract_top_bookmakers(bookmakers, home_name, away_name, limit=3)
-    consensus = calculate_consensus(bookmakers, home_name, away_name)
-    prediction = get_prediction_from_odds(consensus)
-    score_pred = estimate_score_from_odds(consensus)
-
-    return {
-        "top_bookmakers": top_bks,
-        "consensus": consensus,
-        "prediction": prediction,
-        "score_prediction": score_pred,
-        "available": True
-    }

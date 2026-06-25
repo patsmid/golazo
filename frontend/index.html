@@ -44,11 +44,7 @@
       overflow-x: hidden;
     }
 
-    /* ===== FONDO: campo + líneas ===== */
-    .field-bg {
-      position: fixed; inset: 0; z-index: 0;
-      overflow: hidden; pointer-events: none;
-    }
+    .field-bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
     .field-bg::before {
       content: '';
       position: absolute; inset: -50%;
@@ -83,7 +79,6 @@
       100% { transform: scale(1.04) rotate(.4deg); opacity: 1; }
     }
 
-    /* ===== FRANJAS DE CÉSPED ===== */
     .grass-stripe {
       position: fixed; left: 0; width: 100%; height: 3px;
       background: linear-gradient(90deg, transparent, rgba(46, 158, 69, 0.18), transparent);
@@ -92,27 +87,21 @@
     }
     @keyframes grassMove {
       0% { transform: translateY(-100vh); opacity: 0; }
-      8% { opacity: 1; }
-      92% { opacity: 1; }
+      8% { opacity: 1; } 92% { opacity: 1; }
       100% { transform: translateY(100vh); opacity: 0; }
     }
 
-    /* ===== PARTÍCULAS FLOTANTES ===== */
     .particle {
-      position: fixed;
-      border-radius: 50%;
-      pointer-events: none; z-index: 0;
-      opacity: 0;
+      position: fixed; border-radius: 50%;
+      pointer-events: none; z-index: 0; opacity: 0;
       animation: particleFloat linear infinite;
     }
     @keyframes particleFloat {
       0% { transform: translateY(100vh) scale(0); opacity: 0; }
-      8% { opacity: .5; }
-      90% { opacity: .2; }
+      8% { opacity: .5; } 90% { opacity: .2; }
       100% { transform: translateY(-10vh) scale(1); opacity: 0; }
     }
 
-    /* ===== HELPERS ===== */
     .relative-z { position: relative; z-index: 1; }
     .font-display { font-family: 'Oswald', sans-serif; }
 
@@ -120,7 +109,6 @@
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 
-    /* ===== HEADER ===== */
     header {
       position: fixed; top: 0; left: 0; right: 0; z-index: 50;
       background: rgba(8, 12, 15, 0.82);
@@ -168,12 +156,10 @@
       .mobile-btn { display: flex; }
     }
 
-    /* ===== SECCIONES ===== */
     section { display: none; padding: 6rem 1.5rem 4rem; min-height: 100vh; }
     section.active { display: block; }
     .max-w { max-width: 1100px; margin: 0 auto; }
 
-    /* ===== HERO ===== */
     .hero-grid {
       display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;
       align-items: center; min-height: calc(100vh - 6rem);
@@ -187,10 +173,8 @@
       border: 1px solid var(--border); color: var(--fg-muted);
       background: var(--bg-raised);
     }
-
     .hero-title { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 4rem; line-height: 1; letter-spacing: -.02em; }
     .hero-title .accent { color: var(--gold); }
-    .hero-title .green { color: var(--green-light); }
     @media (max-width: 768px) { .hero-title { font-size: 2.8rem; } }
     .hero-sub { font-size: 1rem; color: var(--fg-muted); margin-top: 1rem; max-width: 420px; }
     .hero-actions { display: flex; gap: .75rem; margin-top: 2rem; flex-wrap: wrap; }
@@ -214,7 +198,6 @@
     .stat-num { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 2.5rem; color: var(--gold); line-height: 1; }
     .stat-label { font-size: .7rem; color: var(--fg-muted); margin-top: .4rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; }
 
-    /* ===== CARD ===== */
     .card {
       background: var(--bg-card); border: 1px solid var(--border);
       border-radius: 10px; transition: all .3s; position: relative; overflow: hidden;
@@ -229,7 +212,6 @@
     .card-p { padding: 1.25rem; }
     .card-p-lg { padding: 1.75rem; }
 
-    /* ===== SECTION HEAD ===== */
     .sec-head { margin-bottom: 2.5rem; }
     .sec-badge {
       display: inline-flex; align-items: center; gap: .35rem;
@@ -242,7 +224,6 @@
     .sec-title { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 2.2rem; line-height: 1.1; }
     .sec-desc { color: var(--fg-muted); font-size: .95rem; margin-top: .5rem; max-width: 520px; }
 
-    /* ===== PREDICTION CARDS ===== */
     .pred-card { cursor: pointer; }
     .match-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
     .pred-team { display: flex; align-items: center; gap: .6rem; flex: 1; min-width: 0; }
@@ -276,7 +257,6 @@
     .history-loss { background: var(--red-glow); color: var(--red); border: 1px solid rgba(224,64,64,.18); }
     .history-draw { background: var(--amber-glow); color: var(--amber); border: 1px solid rgba(255,183,77,.18); }
 
-    /* ===== SIMULACION ===== */
     .sim-controls { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
     .sim-input {
       width: 120px; padding: .5rem .75rem; border-radius: 8px;
@@ -317,16 +297,12 @@
     .group-table tr.not-qualified td { color: var(--fg-muted); }
     .team-cell { display: flex; align-items: center; gap: .5rem; }
 
-    /* ===== MATCHES ===== */
     .match-card .date-tag { font-size: .7rem; color: var(--fg-muted); margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--border); }
     .news-snippet { font-size: .8rem; color: var(--fg-dim); margin-top: .75rem; line-height: 1.5; padding: .75rem; background: var(--bg-raised); border-radius: 6px; border: 1px solid var(--border); }
 
-    /* ===== LOADING / SKELETON ===== */
-    .skeleton {
-      background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-card-hover) 50%, var(--bg-card) 75%);
-      background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px;
-    }
-    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .error-card { border-color: rgba(224,64,64,.2) !important; }
+    .error-card .error-msg { font-size: .8rem; color: var(--red); padding: .5rem 0; }
+
     .loading-spinner {
       width: 32px; height: 32px; border: 2px solid var(--border);
       border-top-color: var(--gold); border-radius: 50%;
@@ -338,33 +314,37 @@
     .empty-icon { font-size: 2.5rem; color: var(--border); margin-bottom: 1rem; }
     .empty-text { color: var(--fg-muted); font-size: .9rem; }
 
-    /* ===== TOAST ===== */
     .toast-wrap { position: fixed; top: 4.5rem; right: 1.5rem; z-index: 999; display: flex; flex-direction: column; gap: .5rem; }
     .toast {
       padding: .7rem 1rem; border-radius: 8px; font-size: .8rem;
       background: var(--bg-card); border: 1px solid var(--border);
       color: var(--fg-dim); box-shadow: 0 8px 30px rgba(0,0,0,.4);
       display: flex; align-items: center; gap: .5rem;
-      animation: toastIn .35s ease-out;
+      animation: toastIn .35s ease-out; max-width: 380px;
     }
     .toast.out { animation: toastOut .25s ease-in forwards; }
     @keyframes toastIn { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     @keyframes toastOut { from { opacity: 1; } to { transform: translateX(110%); opacity: 0; } }
 
-    /* ===== REVEAL ===== */
     .reveal { opacity: 0; transform: translateY(20px); transition: all .6s ease; }
     .reveal.visible { opacity: 1; transform: translateY(0); }
 
-    /* ===== FOOTER ===== */
     footer { position: relative; z-index: 1; padding: 2rem 1.5rem; border-top: 1px solid var(--border); text-align: center; }
     footer p { font-size: .75rem; color: var(--fg-muted); }
 
-    /* ===== SIM GRID ===== */
     .sim-grid { display: grid; gap: 1.5rem; grid-template-columns: 1fr 1fr; }
     @media (max-width: 768px) { .sim-grid { grid-template-columns: 1fr; } }
-
-    /* ===== MATCHES GRID ===== */
     .matches-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+
+    .api-status {
+      display: inline-flex; align-items: center; gap: .35rem;
+      font-size: .7rem; color: var(--fg-muted); margin-top: .5rem;
+    }
+    .api-dot { width: 6px; height: 6px; border-radius: 50%; }
+    .api-dot.ok { background: var(--green-light); box-shadow: 0 0 6px var(--green-light); }
+    .api-dot.err { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    .api-dot.loading { background: var(--amber); animation: blink 1s infinite; }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
@@ -372,7 +352,6 @@
   </style>
 </head>
 <body>
-  <!-- Fondo de campo -->
   <div class="field-bg">
     <div class="field-lines"></div>
     <div class="field-center-circle"></div>
@@ -382,7 +361,6 @@
   <div id="particles"></div>
   <div class="toast-wrap" id="toasts"></div>
 
-  <!-- HEADER -->
   <header>
     <nav class="nav-inner">
       <div class="logo" onclick="go('home')">
@@ -419,16 +397,19 @@
               <span class="host-pill">🇨🇦 Canada</span>
             </div>
             <h1 class="hero-title reveal">MUNDIAL<br><span class="accent">2026</span></h1>
-            <p class="hero-sub reveal">Predictor inteligente con simulaciones Monte Carlo para la FIFA World Cup. 48 equipos, 3 sedes, un campeón.</p>
+            <p class="hero-sub reveal">Predictor inteligente con simulaciones Monte Carlo para la FIFA World Cup. 48 equipos, 3 sedes, un campeon.</p>
             <div class="hero-actions reveal">
               <button class="btn btn-gold" onclick="go('predictions')"><i class="fa-solid fa-bolt"></i> Predicciones</button>
               <button class="btn btn-ghost" onclick="go('simulation')">Simular Torneo</button>
             </div>
+            <div class="api-status reveal" id="apiStatusHome">
+              <span class="api-dot loading"></span> Verificando API...
+            </div>
           </div>
           <div class="hero-stats reveal">
-            <div class="stat-block"><div class="stat-num" id="heroTeams">48</div><div class="stat-label">Selecciones</div></div>
-            <div class="stat-block"><div class="stat-num" id="heroMatches">104</div><div class="stat-label">Partidos</div></div>
-            <div class="stat-block"><div class="stat-num" id="heroStadiums">16</div><div class="stat-label">Sedes</div></div>
+            <div class="stat-block"><div class="stat-num" id="heroTeams">—</div><div class="stat-label">Selecciones</div></div>
+            <div class="stat-block"><div class="stat-num" id="heroMatches">—</div><div class="stat-label">Partidos</div></div>
+            <div class="stat-block"><div class="stat-num" id="heroStadiums">—</div><div class="stat-label">Sedes</div></div>
           </div>
         </div>
       </div>
@@ -462,11 +443,11 @@
           <span id="simStatus" class="text-sm" style="color:var(--fg-muted)"></span>
         </div>
         <div class="sim-grid">
-          <div class="card card-p-lg reveal" id="champCard">
+          <div class="card card-p-lg reveal">
             <h3 class="font-display font-600 text-sm tracking-wider mb-4" style="color:var(--fg-muted); text-transform:uppercase; letter-spacing:.06em;">Probabilidad de Campeonato</h3>
             <div id="champList"><div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-trophy"></i></div><div class="empty-text">Ejecuta una simulacion para ver resultados</div></div></div>
           </div>
-          <div class="card card-p-lg reveal" id="groupCard">
+          <div class="card card-p-lg reveal">
             <h3 class="font-display font-600 text-sm tracking-wider mb-4" style="color:var(--fg-muted); text-transform:uppercase; letter-spacing:.06em;">Tabla de Grupo</h3>
             <div class="group-tabs" id="groupTabs"></div>
             <div id="groupTableWrap"><div class="empty-state"><div class="empty-text">Selecciona un grupo</div></div></div>
@@ -485,7 +466,7 @@
         <div class="sec-head reveal">
           <div class="sec-badge"><i class="fa-solid fa-calendar"></i> Proximos Encuentros</div>
           <h2 class="sec-title">Partidos Proximos</h2>
-          <p class="sec-desc">Los proximos partidos con resumen de noticias generado por IA.</p>
+          <p class="sec-desc" id="matchDateDesc">Cargando partidos...</p>
         </div>
         <div id="matchList" class="matches-grid">
           <div class="loading-spinner"></div>
@@ -503,9 +484,10 @@
     // API
     // =============================================================
     const API = 'https://golazo-api-00y6.onrender.com';
+    let apiOnline = false;
 
     // =============================================================
-    // MAPEO DE 48 EQUIPOS (español ↔ inglés ↔ bandera)
+    // MAPEO DE 48 EQUIPOS
     // =============================================================
     const TEAMS_MAP = [
       { es:"México", en:"Mexico", f:"🇲🇽" },
@@ -558,10 +540,12 @@
       { es:"Ghana", en:"Ghana", f:"🇬🇭" },
     ];
 
+    // Busca por español o inglés
     function tm(name) {
       if (!name) return { es: '???', en: '???', f: '⚽' };
-      const found = TEAMS_MAP.find(t => t.es === name || t.en === name);
-      return found || { es: name, en: name, f: '⚽' };
+      const n = name.trim();
+      const found = TEAMS_MAP.find(t => t.es === n || t.en.toLowerCase() === n.toLowerCase());
+      return found || { es: n, en: n, f: '⚽' };
     }
 
     // =============================================================
@@ -576,17 +560,33 @@
     };
 
     // =============================================================
-    // API FETCH
+    // API FETCH — con manejo robusto de errores
     // =============================================================
     async function apiGet(path, params = {}) {
       const url = new URL(`${API}${path}`);
       Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
       try {
-        const res = await fetch(url.toString(), { signal: AbortSignal.timeout(30000) });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return await res.json();
+        const res = await fetch(url.toString(), {
+          signal: AbortSignal.timeout(30000),
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!res.ok) {
+          console.warn(`API ${path}: HTTP ${res.status}`);
+          return null;
+        }
+        const text = await res.text();
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          console.warn(`API ${path}: JSON parse error`, text.substring(0, 200));
+          return null;
+        }
       } catch (e) {
-        console.warn(`API ${path}:`, e.message);
+        if (e.name === 'TimeoutError') {
+          console.warn(`API ${path}: Timeout (30s)`);
+        } else {
+          console.warn(`API ${path}:`, e.message);
+        }
         return null;
       }
     }
@@ -614,9 +614,56 @@
       const wrap = document.getElementById('toasts');
       const el = document.createElement('div');
       el.className = 'toast';
-      el.innerHTML = `<i class="fa-solid ${icons[type]||icons.info}" style="color:${colors[type]||colors.info}"></i><span>${msg}</span>`;
+      el.innerHTML = `<i class="fa-solid ${icons[type]||icons.info}" style="color:${colors[type]||colors.info};flex-shrink:0;"></i><span>${msg}</span>`;
       wrap.appendChild(el);
-      setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, 4000);
+      setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, 5000);
+    }
+
+    // =============================================================
+    // HELPERS PARA LEER CAMPOS DE PREDICCION
+    // La API puede usar distintos nombres de campo
+    // =============================================================
+    function safeGet(obj, ...keys) {
+      for (const k of keys) {
+        if (obj != null && obj[k] !== undefined && obj[k] !== null) return obj[k];
+      }
+      return null;
+    }
+
+    function getProbFields(p) {
+      const hw = safeGet(p, 'home_win_prob', 'home_win', 'prob_home', 'p_home', 'win_home');
+      const dr = safeGet(p, 'draw_prob', 'draw', 'prob_draw', 'p_draw');
+      const aw = safeGet(p, 'away_win_prob', 'away_win', 'prob_away', 'p_away', 'win_away');
+      const home = parseFloat(hw) || 33;
+      const draw = parseFloat(dr) || 34;
+      const away = parseFloat(aw) || 33;
+      // Normalizar a 100%
+      const total = home + draw + away;
+      if (total > 0 && Math.abs(total - 100) > 0.5) {
+        const scale = 100 / total;
+        return { home: home * scale, draw: draw * scale, away: away * scale };
+      }
+      return { home, draw, away };
+    }
+
+    function getGoalsFields(p) {
+      const hg = safeGet(p, 'predicted_home_goals', 'home_xg', 'xg_home', 'expected_home', 'home_expected');
+      const ag = safeGet(p, 'predicted_away_goals', 'away_xg', 'xg_away', 'expected_away', 'away_expected');
+      return {
+        home: hg !== null ? parseFloat(hg) : null,
+        away: ag !== null ? parseFloat(ag) : null,
+      };
+    }
+
+    function getHistoryFields(p, side) {
+      // side = 'home' o 'away'
+      const keys = [
+        `recent_${side}_matches`,
+        `${side}_history`,
+        `${side}_recent`,
+        `history_${side}`,
+      ];
+      return safeGet(p, ...keys) || [];
     }
 
     // =============================================================
@@ -626,65 +673,103 @@
       state.loading.predictions = true;
       const el = document.getElementById('predList');
       el.innerHTML = '<div class="loading-spinner"></div>';
+
       const data = await apiGet('/api/v1/predictions/today');
       state.loading.predictions = false;
 
-      if (!data || !data.matches || data.matches.length === 0) {
-        el.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-futbol"></i></div><div class="empty-text">No hay predicciones disponibles.<br><button class="btn btn-ghost btn-sm mt-4" onclick="loadPredictions()"><i class="fa-solid fa-rotate"></i> Reintentar</button></div></div>`;
+      // La API puede devolver null, o un objeto sin matches
+      if (!data) {
+        el.innerHTML = emptyState('fa-plug-circle-xmark', 'No se pudo conectar con la API. Verifica que este online.', true);
         return;
       }
+
+      const matches = data.matches || [];
+      if (matches.length === 0) {
+        const msg = data.message || data.fallback === false ? 'No hay predicciones disponibles para este momento.' : 'No hay partidos proximos disponibles.';
+        el.innerHTML = emptyState('fa-futbol', msg, true);
+        return;
+      }
+
       state.predictions = data;
-      document.getElementById('predDateDesc').textContent = `Fecha: ${data.date} — ${data.count} partido${data.count !== 1 ? 's' : ''}`;
-      renderPredictions(data.matches);
+      const dateStr = data.date || 'Fecha no disponible';
+      document.getElementById('predDateDesc').textContent = `Fecha: ${dateStr} — ${data.count || matches.length} partido${matches.length !== 1 ? 's' : ''}`;
+      renderPredictions(matches);
     }
 
     function renderPredictions(matches) {
       const el = document.getElementById('predList');
       el.innerHTML = matches.map(p => {
-        const home = tm(p.home_team), away = tm(p.away_team);
-        const hw = p.home_win_prob ?? p.home_win ?? p.prob_home ?? p.p_home ?? 33;
-        const dr = p.draw_prob ?? p.draw ?? p.prob_draw ?? p.p_draw ?? 34;
-        const aw = p.away_win_prob ?? p.away_win ?? p.prob_away ?? p.p_away ?? 33;
-        const hg = p.predicted_home_goals ?? p.home_xg ?? p.xg_home ?? '—';
-        const ag = p.predicted_away_goals ?? p.away_xg ?? p.xg_away ?? '—';
-        const rh = p.recent_home_matches || p.home_history || [];
-        const ra = p.recent_away_matches || p.away_history || [];
+        // Si la prediccion tiene error, mostrar tarjeta de error
+        if (p.error) {
+          const home = tm(p.home_team);
+          const away = tm(p.away_team);
+          return `<div class="card card-p error-card">
+            <div class="match-row">
+              <div class="pred-team"><span class="pred-flag">${home.f}</span><span class="pred-name">${home.es}</span></div>
+              <span class="pred-vs">VS</span>
+              <div class="pred-team right"><span class="pred-name">${away.es}</span><span class="pred-flag">${away.f}</span></div>
+            </div>
+            <div class="error-msg"><i class="fa-solid fa-circle-xmark"></i> Error: ${escapeHtml(p.error)}</div>
+          </div>`;
+        }
+
+        const home = tm(p.home_team);
+        const away = tm(p.away_team);
+        const probs = getProbFields(p);
+        const goals = getGoalsFields(p);
+        const rh = getHistoryFields(p, 'home');
+        const ra = getHistoryFields(p, 'away');
+
+        const hasNews = p.home_news || p.away_news || p.match_news;
+        const hasHistory = (Array.isArray(rh) && rh.length > 0) || (Array.isArray(ra) && ra.length > 0);
+        const hasDetail = goals.home !== null || hasNews || hasHistory;
 
         return `
-        <div class="card card-p pred-card" onclick="this.classList.toggle('open')">
+        <div class="card card-p pred-card${hasDetail ? '' : ''}" ${hasDetail ? `onclick="this.classList.toggle('open')"` : ''}>
           <div class="match-row">
             <div class="pred-team"><span class="pred-flag">${home.f}</span><span class="pred-name">${home.es}</span></div>
             <span class="pred-vs">VS</span>
             <div class="pred-team right"><span class="pred-name">${away.es}</span><span class="pred-flag">${away.f}</span></div>
           </div>
           <div class="pred-probs">
-            <span style="width:${hw}%; background:var(--green-light);"></span>
-            <span style="width:${dr}%; background:var(--fg-muted);"></span>
-            <span style="width:${aw}%; background:var(--red);"></span>
+            <span style="width:${probs.home}%; background:var(--green-light);"></span>
+            <span style="width:${probs.draw}%; background:var(--fg-muted);"></span>
+            <span style="width:${probs.away}%; background:var(--red);"></span>
           </div>
           <div class="pred-meta">
-            <span><span class="pred-pct" style="color:var(--green-light);">${Math.round(hw)}%</span> Local</span>
-            <span><span class="pred-pct" style="color:var(--fg-muted);">${Math.round(dr)}%</span> Empate</span>
-            <span><span class="pred-pct" style="color:var(--red);">${Math.round(aw)}%</span> Visitante</span>
+            <span><span class="pred-pct" style="color:var(--green-light);">${Math.round(probs.home)}%</span> Local</span>
+            <span><span class="pred-pct" style="color:var(--fg-muted);">${Math.round(probs.draw)}%</span> Empate</span>
+            <span><span class="pred-pct" style="color:var(--red);">${Math.round(probs.away)}%</span> Visitante</span>
           </div>
-          <div class="pred-detail">
-            <div class="detail-grid">
-              <div class="detail-item"><div class="detail-val" style="color:var(--green-light);">${typeof hg==='number'?hg.toFixed(1):hg}</div><div class="detail-label">Goles Local</div></div>
-              <div class="detail-item"><div class="detail-val">${typeof ag==='number'?ag.toFixed(1):ag}</div><div class="detail-label">Goles Visitante</div></div>
-              <div class="detail-item"><div class="detail-val">${typeof hg==='number'&&typeof ag==='number'?(hg+ag).toFixed(1):'—'}</div><div class="detail-label">Total Esperado</div></div>
-            </div>
-            ${p.home_news||p.match_news?`<div class="news-block">
-              ${p.home_news?`<div class="news-label"><i class="fa-solid fa-newspaper"></i> Noticias ${home.es}</div><div class="news-text">${p.home_news}</div>`:''}
-              ${p.away_news?`<div class="news-label" style="margin-top:.6rem;"><i class="fa-solid fa-newspaper"></i> Noticias ${away.es}</div><div class="news-text">${p.away_news}</div>`:''}
-              ${p.match_news?`<div class="news-label" style="margin-top:.6rem;"><i class="fa-solid fa-microphone"></i> Previa del partido</div><div class="news-text">${p.match_news}</div>`:''}
-            </div>`:''}
-            ${(rh.length>0||ra.length>0)?`<div style="margin-top:1rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-              ${rh.length>0?`<div><div class="news-label">Reciente ${home.es}</div>${rh.map(m=>{const cls=m.result==='win'?'history-win':m.result==='loss'?'history-loss':'history-draw';const lbl=m.result==='win'?'V':m.result==='loss'?'D':'E';return`<div class="history-item"><span class="history-result ${cls}">${lbl}</span><span>${m.opponent||'—'} ${m.goals_for??'?'}-${m.goals_against??'?'}</span></div>`;}).join('')}</div>`:''}
-              ${ra.length>0?`<div><div class="news-label">Reciente ${away.es}</div>${ra.map(m=>{const cls=m.result==='win'?'history-win':m.result==='loss'?'history-loss':'history-draw';const lbl=m.result==='win'?'V':m.result==='loss'?'D':'E';return`<div class="history-item"><span class="history-result ${cls}">${lbl}</span><span>${m.opponent||'—'} ${m.goals_for??'?'}-${m.goals_against??'?'}</span></div>`;}).join('')}</div>`:''}
-            </div>`:''}
-          </div>
+          ${hasDetail ? `<div class="pred-detail">
+            ${goals.home !== null ? `<div class="detail-grid">
+              <div class="detail-item"><div class="detail-val" style="color:var(--green-light);">${goals.home.toFixed(1)}</div><div class="detail-label">Goles Local</div></div>
+              <div class="detail-item"><div class="detail-val">${goals.away !== null ? goals.away.toFixed(1) : '—'}</div><div class="detail-label">Goles Visitante</div></div>
+              <div class="detail-item"><div class="detail-val">${goals.home !== null && goals.away !== null ? (goals.home + goals.away).toFixed(1) : '—'}</div><div class="detail-label">Total Esperado</div></div>
+            </div>` : ''}
+            ${hasNews ? `<div class="news-block">
+              ${p.home_news ? `<div class="news-label"><i class="fa-solid fa-newspaper"></i> Noticias ${home.es}</div><div class="news-text">${escapeHtml(p.home_news)}</div>` : ''}
+              ${p.away_news ? `<div class="news-label" style="margin-top:.6rem;"><i class="fa-solid fa-newspaper"></i> Noticias ${away.es}</div><div class="news-text">${escapeHtml(p.away_news)}</div>` : ''}
+              ${p.match_news ? `<div class="news-label" style="margin-top:.6rem;"><i class="fa-solid fa-microphone"></i> Previa del partido</div><div class="news-text">${escapeHtml(p.match_news)}</div>` : ''}
+            </div>` : ''}
+            ${hasHistory ? `<div style="margin-top:1rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+              ${rh.length > 0 ? `<div><div class="news-label">Reciente ${home.es}</div>${rh.map(m => renderHistoryItem(m)).join('')}</div>` : ''}
+              ${ra.length > 0 ? `<div><div class="news-label">Reciente ${away.es}</div>${ra.map(m => renderHistoryItem(m)).join('')}</div>` : ''}
+            </div>` : ''}
+          </div>` : ''}
         </div>`;
       }).join('');
+    }
+
+    function renderHistoryItem(m) {
+      if (!m || typeof m !== 'object') return '';
+      const result = m.result || 'draw';
+      const cls = result === 'win' ? 'history-win' : result === 'loss' ? 'history-loss' : 'history-draw';
+      const lbl = result === 'win' ? 'V' : result === 'loss' ? 'D' : 'E';
+      const opp = m.opponent || '—';
+      const gf = m.goals_for ?? m.goals_for ?? '?';
+      const ga = m.goals_against ?? m.goals_against ?? '?';
+      return `<div class="history-item"><span class="history-result ${cls}">${lbl}</span><span>${opp} ${gf}-${ga}</span></div>`;
     }
 
     // =============================================================
@@ -698,15 +783,17 @@
       btn.disabled = true;
       status.textContent = 'Ejecutando...';
       document.getElementById('champList').innerHTML = '<div class="loading-spinner"></div>';
+
       const data = await apiGet('/api/v1/simulation/run', { num_simulations: count });
       state.loading.simulation = false;
       btn.disabled = false;
 
       if (!data || !data.probabilities) {
         status.textContent = 'Error al simular';
-        document.getElementById('champList').innerHTML = `<div class="empty-state"><div class="empty-text">Error al obtener resultados.<br><button class="btn btn-ghost btn-sm mt-3" onclick="runSim()"><i class="fa-solid fa-rotate"></i> Reintentar</button></div></div>`;
+        document.getElementById('champList').innerHTML = emptyState('fa-dice', 'No se pudo obtener la simulacion.', true);
         return;
       }
+
       state.simulation = data;
       status.textContent = `${data.num_simulations.toLocaleString()} simulaciones completadas`;
       renderChampRanking(data.probabilities.champion);
@@ -717,8 +804,10 @@
     }
 
     function renderChampRanking(champProbs) {
+      if (!champProbs || typeof champProbs !== 'object') return;
       const sorted = Object.entries(champProbs).sort((a, b) => b[1] - a[1]).slice(0, 12);
-      const max = sorted[0]?.[1] || 1;
+      if (sorted.length === 0) return;
+      const max = sorted[0][1] || 1;
       document.getElementById('champList').innerHTML = sorted.map(([name, prob], i) => {
         const t = tm(name);
         const pct = (prob * 100).toFixed(1);
@@ -734,6 +823,7 @@
     }
 
     function renderGroupTabs(gw) {
+      if (!gw || typeof gw !== 'object') return;
       document.getElementById('groupTabs').innerHTML = Object.keys(gw).map(l =>
         `<button class="group-tab ${l===state.selectedGroup?'active':''}" onclick="selectGroup('${l}',this)">${l}</button>`
       ).join('');
@@ -748,30 +838,34 @@
 
     function renderGroupTable(letter, simData) {
       const wrap = document.getElementById('groupTableWrap');
-      const standings = simData.last_simulation?.group_stage?.standings?.[letter];
-      if (!standings || standings.length === 0) { wrap.innerHTML = '<div class="empty-state"><div class="empty-text">Sin datos</div></div>'; return; }
-      const gw = simData.probabilities.group_winners[letter] || {};
-      const gr = simData.probabilities.group_runners_up[letter] || {};
+      const standings = simData?.last_simulation?.group_stage?.standings?.[letter];
+      if (!standings || !Array.isArray(standings) || standings.length === 0) {
+        wrap.innerHTML = emptyState('fa-layer-group', 'Sin datos para este grupo', false);
+        return;
+      }
+      const gw = simData.probabilities?.group_winners?.[letter] || {};
+      const gr = simData.probabilities?.group_runners_up?.[letter] || {};
 
       wrap.innerHTML = `<table class="group-table"><thead><tr>
         <th class="num">#</th><th>Equipo</th><th class="num">PJ</th><th class="num">PG</th><th class="num">PE</th><th class="num">PP</th><th class="num">GF</th><th class="num">GC</th><th class="num">DG</th><th class="num">Pts</th>
       </tr></thead><tbody>${standings.map((r, i) => {
         const t = tm(r.team);
-        const played = r.matches ? r.matches.length : 0;
-        const wins = r.matches ? r.matches.filter(m => m.result==='win').length : 0;
-        const draws = r.matches ? r.matches.filter(m => m.result==='draw').length : 0;
-        const losses = r.matches ? r.matches.filter(m => m.result==='loss').length : 0;
+        const matches = r.matches || [];
+        const played = matches.length;
+        const wins = matches.filter(m => m.result === 'win').length;
+        const draws = matches.filter(m => m.result === 'draw').length;
+        const losses = matches.filter(m => m.result === 'loss').length;
         const qual = i < 2;
         return `<tr class="${qual?'qualified':'not-qualified'}">
           <td class="num">${i+1}</td>
           <td><div class="team-cell"><span>${t.f}</span><span>${t.es}${qual?' <span style="font-size:.6rem;color:var(--green-light);margin-left:.3rem;">CLAS</span>':''}</span></div></td>
           <td class="num">${played}</td><td class="num">${wins}</td><td class="num">${draws}</td><td class="num">${losses}</td>
-          <td class="num">${r.gf}</td><td class="num">${r.ga}</td><td class="num">${r.gd>0?'+':''}${r.gd}</td>
-          <td class="num" style="font-weight:700;">${r.points}</td>
+          <td class="num">${r.gf ?? 0}</td><td class="num">${r.ga ?? 0}</td><td class="num">${(r.gd ?? 0) > 0 ? '+' : ''}${r.gd ?? 0}</td>
+          <td class="num" style="font-weight:700;">${r.points ?? 0}</td>
         </tr>`;
       }).join('')}</tbody></table>
       <div style="margin-top:.75rem;font-size:.7rem;color:var(--fg-muted);">
-        Probabilidades (${simData.num_simulations.toLocaleString()} sims):
+        Probabilidades (${(simData.num_simulations||0).toLocaleString()} sims):
         ${Object.entries(gw).map(([team,prob])=>`<span style="margin-right:.6rem;">${tm(team).f} ${tm(team).es} 1°: <b style="color:var(--gold);">${(prob*100).toFixed(1)}%</b></span>`).join('')}
       </div>`;
     }
@@ -781,34 +875,47 @@
       const content = document.getElementById('lastSimContent');
       if (!lastSim) { card.style.display = 'none'; return; }
       card.style.display = 'block';
-      const ct = tm(lastSim.knockout?.champion);
+      const champion = lastSim.knockout?.champion;
+      const ct = tm(champion);
       const finalMatch = lastSim.knockout?.rounds?.final;
+
       let html = '';
       const rounds = lastSim.knockout?.rounds || {};
       const names = { round_of_32:'32vos de Final', round_of_16:'Octavos', quarter_finals:'Cuartos', semi_finals:'Semifinales' };
+
       for (const [key, name] of Object.entries(names)) {
         const matches = rounds[key];
-        if (!matches || matches.length === 0) continue;
+        if (!matches || !Array.isArray(matches) || matches.length === 0) continue;
         html += `<div style="margin-bottom:1rem;"><div class="news-label">${name}</div>`;
         matches.forEach(m => {
           const a = tm(m.team_a), b = tm(m.team_b);
-          html += `<div class="history-item"><span>${a.f} ${a.es}</span><span class="pred-pct" style="font-size:.8rem;">${m.goals_a}-${m.goals_b}</span><span>${b.f} ${b.es}</span>${m.winner?`<span class="history-result history-win" style="margin-left:auto;">${tm(m.winner).f}</span>`:''}</div>`;
+          const w = m.winner;
+          html += `<div class="history-item">
+            <span>${a.f} ${a.es}</span>
+            <span class="pred-pct" style="font-size:.8rem;">${m.goals_a ?? '?'}-${m.goals_b ?? '?'}</span>
+            <span>${b.f} ${b.es}</span>
+            ${w ? `<span class="history-result history-win" style="margin-left:auto;">${tm(w).f}</span>` : ''}
+          </div>`;
         });
         html += '</div>';
       }
+
       if (finalMatch) {
         const a = tm(finalMatch.team_a), b = tm(finalMatch.team_b);
         html += `<div><div class="news-label" style="color:var(--gold);">Final</div>
           <div class="history-item" style="font-size:.95rem;padding:.6rem 0;">
-            <span>${a.f} <b>${a.es}</b></span><span class="pred-pct" style="font-size:1.1rem;">${finalMatch.goals_a}-${finalMatch.goals_b}</span><span><b>${b.es}</b> ${b.f}</span>
+            <span>${a.f} <b>${a.es}</b></span>
+            <span class="pred-pct" style="font-size:1.1rem;">${finalMatch.goals_a ?? '?'}-${finalMatch.goals_b ?? '?'}</span>
+            <span><b>${b.es}</b> ${b.f}</span>
           </div></div>`;
       }
+
       content.innerHTML = `
         <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding:1rem;background:var(--gold-glow);border:1px solid var(--gold-border);border-radius:8px;">
           <span style="font-size:2.5rem;">${ct.f}</span>
           <div><div class="font-display font-700 text-xl">${ct.es}</div><div style="font-size:.8rem;color:var(--gold);">Campeon en esta simulacion</div></div>
         </div>
-        <div style="max-height:400px;overflow-y:auto;">${html}</div>`;
+        <div style="max-height:400px;overflow-y:auto;">${html || '<div class="empty-text">Sin datos de knockout</div>'}</div>`;
     }
 
     // =============================================================
@@ -818,36 +925,75 @@
       state.loading.matches = true;
       const el = document.getElementById('matchList');
       el.innerHTML = '<div class="loading-spinner"></div>';
+
       const data = await apiGet('/api/v1/matches/upcoming');
       state.loading.matches = false;
-      if (!data || !Array.isArray(data) || data.length === 0) {
-        el.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon"><i class="fa-solid fa-calendar-xmark"></i></div><div class="empty-text">No hay partidos proximos.<br><button class="btn btn-ghost btn-sm mt-4" onclick="loadMatches()"><i class="fa-solid fa-rotate"></i> Reintentar</button></div></div>`;
+
+      if (!data) {
+        el.innerHTML = emptyState('fa-plug-circle-xmark', 'No se pudo conectar con la API.', true);
         return;
       }
-      state.upcoming = data;
-      renderMatches(data);
+
+      // La API ahora devuelve { date, matches, count } — NO un array directo
+      const matches = Array.isArray(data) ? data : (data.matches || []);
+      const dateStr = data.date || 'Fecha no disponible';
+      const count = data.count || matches.length;
+
+      if (matches.length === 0) {
+        const msg = data.message || 'No hay partidos proximos disponibles.';
+        document.getElementById('matchDateDesc').textContent = msg;
+        el.innerHTML = emptyState('fa-calendar-xmark', msg, true);
+        return;
+      }
+
+      state.upcoming = { date: dateStr, matches, count };
+      document.getElementById('matchDateDesc').textContent = `Fecha: ${dateStr} — ${count} partido${count !== 1 ? 's' : ''}`;
+      renderMatches(matches);
     }
 
     function renderMatches(matches) {
       document.getElementById('matchList').innerHTML = matches.map(m => {
-        const home = tm(m.home_team), away = tm(m.away_team);
+        const home = tm(m.home_team);
+        const away = tm(m.away_team);
         const date = m.date || m.datetime?.split('T')[0] || '—';
-        const time = m.datetime ? m.datetime.split('T')[1]?.substring(0,5) : '';
+        const time = m.datetime ? m.datetime.split('T')[1]?.substring(0, 5) : '';
         const news = m.match_news || m.home_news || m.away_news;
+        const stadium = m.stadium || m.venue || '';
+
         return `<div class="card card-p match-card">
           <div class="match-row">
             <div class="pred-team"><span class="pred-flag">${home.f}</span><span class="pred-name">${home.es}</span></div>
             <span class="pred-vs">VS</span>
             <div class="pred-team right"><span class="pred-name">${away.es}</span><span class="pred-flag">${away.f}</span></div>
           </div>
-          <div class="date-tag"><i class="fa-regular fa-calendar" style="margin-right:.3rem;"></i>${date}${time?` — ${time}`:''}${m.stadium?`<span style="margin-left:.5rem;"><i class="fa-solid fa-location-dot" style="margin-right:.2rem;"></i>${m.stadium}</span>`:''}</div>
-          ${news?`<div class="news-snippet"><i class="fa-solid fa-newspaper" style="color:var(--gold);margin-right:.3rem;"></i>${news}</div>`:''}
+          <div class="date-tag">
+            <i class="fa-regular fa-calendar" style="margin-right:.3rem;"></i>${date}${time ? ` — ${time}` : ''}
+            ${stadium ? `<span style="margin-left:.5rem;"><i class="fa-solid fa-location-dot" style="margin-right:.2rem;"></i>${escapeHtml(stadium)}</span>` : ''}
+          </div>
+          ${news ? `<div class="news-snippet"><i class="fa-solid fa-newspaper" style="color:var(--gold);margin-right:.3rem;"></i>${escapeHtml(news)}</div>` : ''}
         </div>`;
       }).join('');
     }
 
     // =============================================================
-    // PARTÍCULAS + FRANJAS DE CÉSPED
+    // UTILIDADES
+    // =============================================================
+    function escapeHtml(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function emptyState(icon, msg, showRetry) {
+      return `<div class="empty-state" style="grid-column:1/-1;">
+        <div class="empty-icon"><i class="fa-solid ${icon}"></i></div>
+        <div class="empty-text">${escapeHtml(msg)}${showRetry ? '<br><button class="btn btn-ghost btn-sm mt-4" onclick="location.reload()"><i class="fa-solid fa-rotate"></i> Reintentar</button>' : ''}</div>
+      </div>`;
+    }
+
+    // =============================================================
+    // PARTÍCULAS + FRANJAS
     // =============================================================
     function createParticles() {
       const c = document.getElementById('particles');
@@ -855,15 +1001,7 @@
         const p = document.createElement('div');
         p.className = 'particle';
         const isGold = Math.random() > 0.5;
-        p.style.cssText = `
-          left:${Math.random()*100}%;
-          width:${1.5+Math.random()*2}px;
-          height:${1.5+Math.random()*2}px;
-          background:${isGold ? 'var(--gold)' : 'var(--green-light)'};
-          animation-duration:${10+Math.random()*14}s;
-          animation-delay:${Math.random()*12}s;
-          box-shadow:0 0 ${3+Math.random()*4}px ${isGold ? 'rgba(212,168,67,.4)' : 'rgba(76,175,80,.4)'};
-        `;
+        p.style.cssText = `left:${Math.random()*100}%;width:${1.5+Math.random()*2}px;height:${1.5+Math.random()*2}px;background:${isGold?'var(--gold)':'var(--green-light)'};animation-duration:${10+Math.random()*14}s;animation-delay:${Math.random()*12}s;box-shadow:0 0 ${3+Math.random()*4}px ${isGold?'rgba(212,168,67,.4)':'rgba(76,175,80,.4)'};`;
         c.appendChild(p);
       }
     }
@@ -889,18 +1027,36 @@
     }
 
     // =============================================================
-    // INIT
+    // INIT — verificar API + cargar stats del hero
     // =============================================================
     document.addEventListener('DOMContentLoaded', () => {
       createParticles();
       createGrassStripes();
       initReveals();
 
-      // Cargar hero stats en background
+      // Verificar que la API esté online
       (async () => {
-        const [t, s] = await Promise.all([apiGet('/api/v1/teams'), apiGet('/api/v1/stadiums')]);
-        if (t?.teams) document.getElementById('heroTeams').textContent = t.count || t.teams.length;
-        if (s?.stadiums) document.getElementById('heroStadiums').textContent = s.count || s.stadiums.length;
+        const root = await apiGet('/');
+        const statusEl = document.getElementById('apiStatusHome');
+
+        if (root && root.status === 'online') {
+          apiOnline = true;
+          statusEl.innerHTML = '<span class="api-dot ok"></span> API conectada';
+        } else {
+          apiOnline = false;
+          statusEl.innerHTML = '<span class="api-dot err"></span> API fuera de linea — las funciones necesitan la API activa';
+          toast('La API no responde. Render puede estar en cold start, espera 30s y recarga.', 'warn');
+        }
+
+        if (apiOnline) {
+          const [t, s] = await Promise.all([apiGet('/api/v1/teams'), apiGet('/api/v1/stadiums')]);
+          if (t?.teams) document.getElementById('heroTeams').textContent = t.count || t.teams.length;
+          if (s?.stadiums) document.getElementById('heroStadiums').textContent = s.count || s.stadiums.length;
+        } else {
+          document.getElementById('heroTeams').textContent = '48';
+          document.getElementById('heroMatches').textContent = '104';
+          document.getElementById('heroStadiums').textContent = '16';
+        }
       })();
     });
   </script>

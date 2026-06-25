@@ -1,16 +1,47 @@
 import json
 import re
+import time
+from functools import wraps
 from typing import List, Optional
+from groq import Groq
 from app.config import GROQ_API_KEY
 from app.data.parser import fetch_news_headlines as _fetch_headlines
 
-# Groq es opcional
-try:
-    from groq import Groq
-    groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
-except ImportError:
-    groq_client = None
+client = Groq(api_key=GROQ_API_KEY)
 
+# ============================================================================
+# DECORADOR DE REINTENTOS PARA RATE LIMITS
+# ============================================================================
+
+def retry_on_rate_limit(max_retries=3, base_delay=1):
+    """Decorador para reintentar en caso de rate limit de Groq."""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            last_error = None
+            for attempt in range(max_retries):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    error_msg = str(e).lower()
+                    if "rate_limit" in error_msg or "429" in error_msg:
+                        delay = base_delay * (2 ** attempt)
+                        print(f"⏳ Rate limit alcanzado. Reintentando en {delay:.2f}s (intento {attempt+1}/{max_retries})")
+                        time.sleep(delay)
+                        last_error = e
+                        continue
+                    else:
+                        # Otro tipo de error, lo propagamos
+                        raise
+            # Si llegamos aquí, todos los reintentos fallaron
+            print(f"❌ Fallaron todos los reintentos para {func.__name__}: {last_error}")
+            return None
+        return wrapper
+    return decorator
+
+# ============================================================================
+# PROMPTS
+# ============================================================================
 
 SENTIMENT_PROMPT = """Analiza los titulares de noticias sobre {team_name} en el Mundial 2026.
 
@@ -47,6 +78,13 @@ Titulares:
 {headlines}
 """
 
+MATCH_SUMMARY_PROMPT = """Resume en una oración corta (máximo 100 caracteres) lo más destacado del partido entre {home} y {away} en el Mundial 2026.
+Si no hay información específica, di que no hay noticias.
+Resumen:"""
+
+# ============================================================================
+# FUNCIONES AUXILIARES
+# ============================================================================
 
 def _clean_json(text: str) -> str:
     """Extrae JSON de respuestas con markdown o texto extra."""
@@ -62,7 +100,6 @@ def _clean_json(text: str) -> str:
     if start != -1 and end != -1 and end > start:
         text = text[start:end+1]
     return text.strip()
-
 
 def fallback_sentiment(headlines: list) -> tuple:
     """Diccionario de polaridad simple en espanol."""
@@ -90,19 +127,20 @@ def fallback_sentiment(headlines: list) -> tuple:
         reason = "Noticias neutrales"
     return score, reason
 
+# ============================================================================
+# FUNCIONES PRINCIPALES CON REINTENTOS
+# ============================================================================
 
+@retry_on_rate_limit(max_retries=3, base_delay=1)
 def analyze_sentiment(team_name: str, headlines: list) -> tuple:
     """Devuelve (score, reason). Si falla, usa fallback."""
     if not headlines or all("no se encontraron" in h.lower() for h in headlines):
         return 0.0, "Sin noticias relevantes"
 
-    if not groq_client:
-        return fallback_sentiment(headlines)
-
     headlines_text = "\n".join(f"- {h}" for h in headlines[:5])
     prompt = SENTIMENT_PROMPT.format(team_name=team_name, headlines=headlines_text)
     try:
-        chat_completion = groq_client.chat.completions.create(
+        chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
             model="llama-3.1-8b-instant",
             temperature=0.05,
@@ -120,71 +158,44 @@ def analyze_sentiment(team_name: str, headlines: list) -> tuple:
         print(f"Error en Groq sentiment: {e}")
         return fallback_sentiment(headlines)
 
-
+@retry_on_rate_limit(max_retries=3, base_delay=1)
 def summarize_headlines(team: str, headlines: List[str]) -> str:
-    """
-    Genera un resumen corto de las noticias de un equipo.
-    """
+    """Genera un resumen corto de las noticias de un equipo."""
     if not headlines or headlines == [f"No se encontraron noticias sobre {team}"]:
         return f"Sin noticias relevantes sobre {team}"
 
-    # Si no hay cliente Groq, resumen manual
-    if not groq_client:
-        combined = " ".join(headlines[:3])
-        return combined[:120] + "..." if len(combined) > 120 else combined
-
-    prompt = f"""Resume en una oración corta (máximo 100 caracteres) las noticias más relevantes sobre {team} en el Mundial 2026.
-
-Titulares:
-{chr(10).join(headlines[:5])}
-
-Resumen:"""
-
+    headlines_text = "\n".join(f"- {h}" for h in headlines[:5])
+    prompt = SUMMARY_PROMPT.format(team_name=team, headlines=headlines_text)
     try:
-        response = groq_client.chat.completions.create(
+        chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
             model="llama-3.1-8b-instant",
             temperature=0.3,
             max_tokens=80,
         )
-        summary = response.choices[0].message.content.strip()
+        summary = chat_completion.choices[0].message.content.strip()
         if len(summary) > 120:
             summary = summary[:117] + "..."
         return summary
     except Exception as e:
         print(f"Error generando resumen para {team}: {e}")
-        combined = " ".join(headlines[:2])
-        return combined[:100] + "..." if len(combined) > 100 else combined
+        return " ".join(headlines[:2])[:100] + "..."
 
-
+@retry_on_rate_limit(max_retries=3, base_delay=1)
 def fetch_match_news_summary(home: str, away: str) -> str:
-    """
-    Genera un resumen corto del partido entre home y away.
-    """
-    if not groq_client:
-        return f"Partido entre {home} y {away} en el Mundial 2026."
-
-    prompt = f"""Resume en una oración corta (máximo 100 caracteres) lo más destacado del partido entre {home} y {away} en el Mundial 2026.
-Si no hay información específica, di que no hay noticias.
-Resumen:"""
-
+    """Genera un resumen corto del partido entre home y away."""
+    prompt = MATCH_SUMMARY_PROMPT.format(home=home, away=away)
     try:
-        response = groq_client.chat.completions.create(
+        chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
             model="llama-3.1-8b-instant",
             temperature=0.3,
             max_tokens=80,
         )
-        summary = response.choices[0].message.content.strip()
+        summary = chat_completion.choices[0].message.content.strip()
         if len(summary) > 120:
             summary = summary[:117] + "..."
         return summary
     except Exception as e:
         print(f"Error generando resumen del partido: {e}")
         return f"Partido entre {home} y {away} en el Mundial 2026."
-
-
-# Función auxiliar para obtener titulares (wrapper)
-def fetch_news_headlines(team: str) -> List[str]:
-    """Wrapper para mantener compatibilidad con otras partes del código."""
-    return _fetch_headlines(team)

@@ -7,6 +7,10 @@ from app.services.news_service import summarize_headlines, fetch_match_news_summ
 from app.data.parser import fetch_news_headlines
 from collections import defaultdict  # Añadir al inicio del archivofrom collections import defaultdict  # Añadir al inicio del archivo
 import asyncio, datetime
+from app.services.task_tracker import (
+    start_task, complete_task, fail_task,
+    generate_task_id, get_task_status
+)
 
 router = APIRouter(prefix="/api/v1")
 
@@ -139,21 +143,82 @@ async def get_prediction(match_id: str):
     if not cached: raise HTTPException(404, "Predicción no disponible")
     return cached
 
+@router.get("/predictions/task/{task_id}")
+async def get_task_status_endpoint(task_id: str):
+    """Obtiene el estado de una tarea en segundo plano."""
+    status = get_task_status(task_id)
+    if not status:
+        raise HTTPException(404, "Tarea no encontrada o expirada")
+    return status
+
 @router.post("/predictions/refresh")
 async def refresh_predictions():
-    result = await update_upcoming_predictions()
-    return {"status": "ok", "updated": result.get("updated", 0)}
+    task_id = generate_task_id()
+    start_task(task_id, "refresh", {"type": "refresh_predictions"})
+
+    async def run_refresh():
+        try:
+            result = await update_upcoming_predictions()
+            complete_task(task_id, result)
+        except Exception as e:
+            fail_task(task_id, str(e))
+
+    asyncio.create_task(run_refresh())
+    return {
+        "status": "accepted",
+        "task_id": task_id,
+        "message": "Actualización de predicciones iniciada en segundo plano. Consulta /predictions/task/{task_id} para ver el progreso."
+    }
 
 @router.post("/predictions/learn")
 async def learn_predictions():
-    result = await process_all_finished_matches(force_reprocess=False)
-    return {"status": "ok", **result}
+    task_id = generate_task_id()
+    start_task(task_id, "learn", {"type": "learn_from_results"})
+
+    async def run_learn():
+        try:
+            result = await process_all_finished_matches(force_reprocess=False)
+            complete_task(task_id, result)
+        except Exception as e:
+            fail_task(task_id, str(e))
+
+    asyncio.create_task(run_learn())
+    return {
+        "status": "accepted",
+        "task_id": task_id,
+        "message": "Aprendizaje iniciado en segundo plano. Consulta /predictions/task/{task_id} para ver el progreso."
+    }
 
 @router.post("/predictions/recalculate")
 async def recalculate_predictions():
-    result = await recalculate_all_elo()
-    return {"status": "ok", **result}
+    task_id = generate_task_id()
+    start_task(task_id, "recalculate", {"type": "recalculate_elo"})
 
+    async def run_recalculate():
+        try:
+            result = await recalculate_all_elo()
+            complete_task(task_id, result)
+        except Exception as e:
+            fail_task(task_id, str(e))
+
+    asyncio.create_task(run_recalculate())
+    return {
+        "status": "accepted",
+        "task_id": task_id,
+        "message": "Recálculo completo iniciado en segundo plano. Consulta /predictions/task/{task_id} para ver el progreso."
+    }
+
+@router.get("/predictions/tasks/recent")
+async def get_recent_tasks(limit: int = 10):
+    """Obtiene las tareas más recientes."""
+    keys = redis_client.keys(f"{TASK_PREFIX}*")
+    tasks = []
+    for key in sorted(keys, reverse=True)[:limit]:
+        data = redis_client.get(key)
+        if data:
+            tasks.append(json.loads(data))
+    return {"tasks": tasks}
+    
 @router.post("/matches/result")
 async def report_match_result(data: MatchResultInput):
     try:
