@@ -7,375 +7,186 @@
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-    :root {
-      --bg: #080C0F;
-      --bg-raised: #0E1418;
-      --bg-card: #111920;
-      --bg-card-hover: #1A2430;
-      --border: #1E2A36;
-      --border-hover: #2A3A4A;
-      --fg: #E8ECF0;
-      --fg-dim: #A0B0C0;
-      --fg-muted: #5A7080;
-      --gold: #D4A843;
-      --gold-light: #E8C86A;
-      --gold-dark: #B08930;
-      --gold-glow: rgba(212, 168, 67, 0.10);
-      --gold-border: rgba(212, 168, 67, 0.22);
-      --green: #2E9E45;
-      --green-light: #4CAF50;
-      --green-dark: #1B7A2E;
-      --green-glow: rgba(46, 158, 69, 0.10);
-      --green-border: rgba(46, 158, 69, 0.22);
-      --red: #E04040;
-      --red-glow: rgba(224, 64, 64, 0.08);
-      --amber: #FFB74D;
-      --amber-glow: rgba(255, 183, 77, 0.08);
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      background: var(--bg);
-      color: var(--fg);
-      font-family: 'Source Sans 3', sans-serif;
-      line-height: 1.6;
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
-    }
-
-    .field-bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
-    .field-bg::before {
-      content: '';
-      position: absolute; inset: -50%;
-      background:
-        radial-gradient(ellipse 80% 55% at 50% 45%, rgba(46, 158, 69, 0.06) 0%, transparent 70%),
-        radial-gradient(circle at 20% 80%, rgba(212, 168, 67, 0.04) 0%, transparent 50%),
-        radial-gradient(circle at 85% 15%, rgba(212, 168, 67, 0.03) 0%, transparent 50%);
-      animation: fieldPulse 14s ease-in-out infinite alternate;
-    }
-    .field-lines {
-      position: absolute; inset: 0; opacity: 0.025;
-      background-image:
-        linear-gradient(var(--fg) 1px, transparent 1px),
-        linear-gradient(90deg, var(--fg) 1px, transparent 1px);
-      background-size: 80px 80px;
-      mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black, transparent);
-    }
-    .field-center-circle {
-      position: absolute; top: 50%; left: 50%;
-      width: 300px; height: 300px;
-      transform: translate(-50%, -50%);
-      border: 1px solid rgba(46, 158, 69, 0.04);
-      border-radius: 50%;
-    }
-    .field-center-line {
-      position: absolute; top: 0; left: 50%;
-      width: 1px; height: 100%;
-      background: rgba(46, 158, 69, 0.025);
-    }
-    @keyframes fieldPulse {
-      0% { transform: scale(1) rotate(0deg); opacity: .6; }
-      100% { transform: scale(1.04) rotate(.4deg); opacity: 1; }
-    }
-
-    .grass-stripe {
-      position: fixed; left: 0; width: 100%; height: 3px;
-      background: linear-gradient(90deg, transparent, rgba(46, 158, 69, 0.18), transparent);
-      z-index: 0; pointer-events: none;
-      animation: grassMove linear infinite;
-    }
-    @keyframes grassMove {
-      0% { transform: translateY(-100vh); opacity: 0; }
-      8% { opacity: 1; } 92% { opacity: 1; }
-      100% { transform: translateY(100vh); opacity: 0; }
-    }
-
-    .particle {
-      position: fixed; border-radius: 50%;
-      pointer-events: none; z-index: 0; opacity: 0;
-      animation: particleFloat linear infinite;
-    }
-    @keyframes particleFloat {
-      0% { transform: translateY(100vh) scale(0); opacity: 0; }
-      8% { opacity: .5; } 90% { opacity: .2; }
-      100% { transform: translateY(-10vh) scale(1); opacity: 0; }
-    }
-
-    .relative-z { position: relative; z-index: 1; }
-    .font-display { font-family: 'Oswald', sans-serif; }
-
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
-
-    header {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-      background: rgba(8, 12, 15, 0.82);
-      backdrop-filter: blur(24px);
-      border-bottom: 1px solid var(--border);
-    }
-    .nav-inner {
-      max-width: 1100px; margin: 0 auto;
-      padding: 0 1.5rem; height: 56px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .logo { display: flex; align-items: center; gap: .6rem; cursor: pointer; }
-    .logo-icon {
-      width: 32px; height: 32px; border-radius: 8px;
-      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-      display: flex; align-items: center; justify-content: center;
-      color: #0A0A0A; font-size: .85rem;
-    }
-    .logo-text { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 1.1rem; letter-spacing: .08em; }
-
-    .nav-links { display: flex; gap: 2rem; }
-    .nav-link {
-      font-family: 'Oswald', sans-serif; font-weight: 500; font-size: .8rem;
-      letter-spacing: .06em; text-transform: uppercase;
-      color: var(--fg-muted); cursor: pointer;
-      transition: color .25s; position: relative; padding: .3rem 0;
-    }
-    .nav-link::after {
-      content: ''; position: absolute; bottom: -2px; left: 0;
-      width: 0; height: 1.5px; background: var(--gold);
-      transition: width .3s;
-    }
-    .nav-link:hover, .nav-link.active { color: var(--gold); }
-    .nav-link:hover::after, .nav-link.active::after { width: 100%; }
-
-    .mobile-btn {
-      display: none; background: none; border: 1px solid var(--border);
-      color: var(--fg-muted); border-radius: 6px; width: 36px; height: 36px;
-      cursor: pointer; align-items: center; justify-content: center;
-    }
-    .mobile-menu { display: none; padding: .5rem 1.5rem 1rem; border-top: 1px solid var(--border); }
-    .mobile-menu.open { display: flex; flex-direction: column; gap: .25rem; }
-    @media (max-width: 640px) {
-      .nav-links { display: none; }
-      .mobile-btn { display: flex; }
-    }
-
-    section { display: none; padding: 6rem 1.5rem 4rem; min-height: 100vh; }
-    section.active { display: block; }
-    .max-w { max-width: 1100px; margin: 0 auto; }
-
-    .hero-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;
-      align-items: center; min-height: calc(100vh - 6rem);
-    }
-    @media (max-width: 768px) { .hero-grid { grid-template-columns: 1fr; gap: 2rem; min-height: auto; padding: 3rem 0; } }
-
-    .hero-hosts { display: flex; gap: .5rem; margin-bottom: 2rem; flex-wrap: wrap; }
-    .host-pill {
-      font-size: .7rem; font-weight: 600; letter-spacing: .04em;
-      padding: .25rem .7rem; border-radius: 99px;
-      border: 1px solid var(--border); color: var(--fg-muted);
-      background: var(--bg-raised);
-    }
-    .hero-title { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 4rem; line-height: 1; letter-spacing: -.02em; }
-    .hero-title .accent { color: var(--gold); }
-    @media (max-width: 768px) { .hero-title { font-size: 2.8rem; } }
-    .hero-sub { font-size: 1rem; color: var(--fg-muted); margin-top: 1rem; max-width: 420px; }
-    .hero-actions { display: flex; gap: .75rem; margin-top: 2rem; flex-wrap: wrap; }
-
-    .btn {
-      font-family: 'Oswald', sans-serif; font-weight: 600; font-size: .85rem;
-      letter-spacing: .05em; text-transform: uppercase;
-      padding: .7rem 1.8rem; border-radius: 8px; border: none;
-      cursor: pointer; transition: all .25s; display: inline-flex;
-      align-items: center; gap: .5rem;
-    }
-    .btn-gold { background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: #0A0A0A; }
-    .btn-gold:hover { box-shadow: 0 4px 24px rgba(212, 168, 67, .25); transform: translateY(-1px); }
-    .btn-ghost { background: transparent; color: var(--fg-dim); border: 1px solid var(--border); }
-    .btn-ghost:hover { border-color: var(--gold-border); color: var(--gold); background: var(--gold-glow); }
-    .btn-sm { padding: .45rem 1.2rem; font-size: .75rem; }
-    .btn:disabled { opacity: .4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
-
-    .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
-    .stat-block { text-align: center; }
-    .stat-num { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 2.5rem; color: var(--gold); line-height: 1; }
-    .stat-label { font-size: .7rem; color: var(--fg-muted); margin-top: .4rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; }
-
-    .card {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 10px; transition: all .3s; position: relative; overflow: hidden;
-    }
-    .card::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--gold), transparent);
-      opacity: 0; transition: opacity .35s;
-    }
-    .card:hover { border-color: var(--border-hover); background: var(--bg-card-hover); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,.3); }
-    .card:hover::before { opacity: 1; }
-    .card-p { padding: 1.25rem; }
-    .card-p-lg { padding: 1.75rem; }
-
-    .sec-head { margin-bottom: 2.5rem; }
-    .sec-badge {
-      display: inline-flex; align-items: center; gap: .35rem;
-      font-size: .7rem; font-weight: 600; letter-spacing: .06em;
-      text-transform: uppercase; color: var(--gold);
-      background: var(--gold-glow); border: 1px solid var(--gold-border);
-      padding: .2rem .65rem; border-radius: 99px; margin-bottom: .75rem;
-    }
-    .sec-badge.green { color: var(--green-light); background: var(--green-glow); border-color: var(--green-border); }
-    .sec-title { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 2.2rem; line-height: 1.1; }
-    .sec-desc { color: var(--fg-muted); font-size: .95rem; margin-top: .5rem; max-width: 520px; }
-
-    .pred-card { cursor: pointer; }
-    .match-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
-    .pred-team { display: flex; align-items: center; gap: .6rem; flex: 1; min-width: 0; }
-    .pred-team.right { justify-content: flex-end; text-align: right; }
-    .pred-flag { font-size: 1.25rem; flex-shrink: 0; }
-    .pred-name { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .pred-vs { font-family: 'Oswald', sans-serif; font-weight: 300; font-size: .7rem; color: var(--fg-muted); letter-spacing: .1em; flex-shrink: 0; }
-    .pred-probs { display: flex; height: 4px; border-radius: 99px; overflow: hidden; margin-top: 1rem; background: rgba(255,255,255,.03); }
-    .pred-probs span { transition: width .8s ease; }
-    .pred-meta { display: flex; justify-content: space-between; margin-top: .6rem; font-size: .7rem; color: var(--fg-muted); }
-    .pred-pct { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: .75rem; }
-
-    .pred-detail { display: none; margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
-    .pred-card.open .pred-detail { display: block; animation: fadeSlide .3s ease-out; }
-    @keyframes fadeSlide { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-
-    .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem; margin-bottom: 1rem; }
-    @media (max-width: 640px) { .detail-grid { grid-template-columns: 1fr; } }
-    .detail-item { text-align: center; padding: .75rem; border-radius: 8px; background: var(--bg-raised); border: 1px solid var(--border); }
-    .detail-val { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 1.5rem; }
-    .detail-label { font-size: .65rem; color: var(--fg-muted); text-transform: uppercase; letter-spacing: .06em; margin-top: .2rem; }
-
-    .news-block { margin-top: .75rem; }
-    .news-label { font-size: .65rem; font-weight: 600; color: var(--fg-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .3rem; }
-    .news-text { font-size: .85rem; color: var(--fg-dim); line-height: 1.5; }
-
-    .history-item { display: flex; align-items: center; gap: .5rem; padding: .4rem 0; font-size: .8rem; border-bottom: 1px solid var(--border); }
-    .history-item:last-child { border-bottom: none; }
-    .history-result { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: .7rem; padding: .15rem .45rem; border-radius: 4px; text-transform: uppercase; }
-    .history-win { background: var(--green-glow); color: var(--green-light); border: 1px solid var(--green-border); }
-    .history-loss { background: var(--red-glow); color: var(--red); border: 1px solid rgba(224,64,64,.18); }
-    .history-draw { background: var(--amber-glow); color: var(--amber); border: 1px solid rgba(255,183,77,.18); }
-
-    .sim-controls { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
-    .sim-input {
-      width: 120px; padding: .5rem .75rem; border-radius: 8px;
-      background: var(--bg-card); border: 1px solid var(--border);
-      color: var(--fg); font-family: 'Source Sans 3', sans-serif; font-size: .9rem;
-    }
-    .sim-input:focus { outline: none; border-color: var(--gold-border); }
-
-    .champ-row { display: flex; align-items: center; gap: .75rem; padding: .6rem 0; border-bottom: 1px solid var(--border); }
-    .champ-row:last-child { border-bottom: none; }
-    .champ-pos { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: .85rem; width: 1.5rem; text-align: center; }
-    .champ-flag { font-size: 1.1rem; }
-    .champ-name { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: .9rem; flex: 1; }
-    .champ-bar-wrap { width: 140px; }
-    .champ-bar { height: 5px; border-radius: 99px; background: rgba(255,255,255,.04); overflow: hidden; }
-    .champ-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--gold-dark), var(--gold)); transition: width 1s ease; }
-    .champ-pct { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: .85rem; width: 3.5rem; text-align: right; }
-
-    .group-tabs { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: 1.5rem; }
-    .group-tab {
-      font-family: 'Oswald', sans-serif; font-weight: 500; font-size: .8rem;
-      padding: .4rem .9rem; border-radius: 6px; border: 1px solid var(--border);
-      background: transparent; color: var(--fg-muted); cursor: pointer; transition: all .25s;
-    }
-    .group-tab:hover { border-color: var(--border-hover); color: var(--fg-dim); }
-    .group-tab.active { background: var(--gold-glow); border-color: var(--gold-border); color: var(--gold); }
-
-    .group-table { width: 100%; border-collapse: collapse; }
-    .group-table th {
-      font-family: 'Oswald', sans-serif; font-weight: 500; font-size: .7rem;
-      color: var(--fg-muted); text-transform: uppercase; letter-spacing: .06em;
-      text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--border);
-    }
-    .group-table th.num { text-align: center; }
-    .group-table td { padding: .55rem .6rem; border-bottom: 1px solid var(--border); font-size: .85rem; }
-    .group-table td.num { text-align: center; font-family: 'Oswald', sans-serif; font-weight: 600; }
-    .group-table tr.qualified td { color: var(--green-light); }
-    .group-table tr.not-qualified td { color: var(--fg-muted); }
-    .team-cell { display: flex; align-items: center; gap: .5rem; }
-
-    .match-card .date-tag { font-size: .7rem; color: var(--fg-muted); margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--border); }
-    .news-snippet { font-size: .8rem; color: var(--fg-dim); margin-top: .75rem; line-height: 1.5; padding: .75rem; background: var(--bg-raised); border-radius: 6px; border: 1px solid var(--border); }
-
-    .error-card { border-color: rgba(224,64,64,.2) !important; }
-    .error-card .error-msg { font-size: .8rem; color: var(--red); padding: .5rem 0; }
-
-    .loading-spinner {
-      width: 32px; height: 32px; border: 2px solid var(--border);
-      border-top-color: var(--gold); border-radius: 50%;
-      animation: spin .8s linear infinite; margin: 2rem auto;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .empty-state { text-align: center; padding: 4rem 1rem; }
-    .empty-icon { font-size: 2.5rem; color: var(--border); margin-bottom: 1rem; }
-    .empty-text { color: var(--fg-muted); font-size: .9rem; }
-
-    .toast-wrap { position: fixed; top: 4.5rem; right: 1.5rem; z-index: 999; display: flex; flex-direction: column; gap: .5rem; }
-    .toast {
-      padding: .7rem 1rem; border-radius: 8px; font-size: .8rem;
-      background: var(--bg-card); border: 1px solid var(--border);
-      color: var(--fg-dim); box-shadow: 0 8px 30px rgba(0,0,0,.4);
-      display: flex; align-items: center; gap: .5rem;
-      animation: toastIn .35s ease-out; max-width: 380px;
-    }
-    .toast.out { animation: toastOut .25s ease-in forwards; }
-    @keyframes toastIn { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    @keyframes toastOut { from { opacity: 1; } to { transform: translateX(110%); opacity: 0; } }
-
-    .reveal { opacity: 0; transform: translateY(20px); transition: all .6s ease; }
-    .reveal.visible { opacity: 1; transform: translateY(0); }
-
-    footer { position: relative; z-index: 1; padding: 2rem 1.5rem; border-top: 1px solid var(--border); text-align: center; }
-    footer p { font-size: .75rem; color: var(--fg-muted); }
-
-    .sim-grid { display: grid; gap: 1.5rem; grid-template-columns: 1fr 1fr; }
-    @media (max-width: 768px) { .sim-grid { grid-template-columns: 1fr; } }
-    .matches-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
-
-    .api-status {
-      display: inline-flex; align-items: center; gap: .35rem;
-      font-size: .7rem; color: var(--fg-muted); margin-top: .5rem;
-    }
-    .api-dot { width: 6px; height: 6px; border-radius: 50%; }
-    .api-dot.ok { background: var(--green-light); box-shadow: 0 0 6px var(--green-light); }
-    .api-dot.err { background: var(--red); box-shadow: 0 0 6px var(--red); }
-    .api-dot.loading { background: var(--amber); animation: blink 1s infinite; }
-    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
-    }
+    :root{--bg:#080C0F;--bg-raised:#0E1418;--bg-card:#111920;--bg-card-hover:#1A2430;--border:#1E2A36;--border-hover:#2A3A4A;--fg:#E8ECF0;--fg-dim:#A0B0C0;--fg-muted:#5A7080;--gold:#D4A843;--gold-light:#E8C86A;--gold-dark:#B08930;--gold-glow:rgba(212,168,67,.1);--gold-border:rgba(212,168,67,.22);--green:#2E9E45;--green-light:#4CAF50;--green-dark:#1B7A2E;--green-glow:rgba(46,158,69,.1);--green-border:rgba(46,158,69,.22);--red:#E04040;--red-glow:rgba(224,64,64,.08);--amber:#FFB74D;--amber-glow:rgba(255,183,77,.08)}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:var(--bg);color:var(--fg);font-family:'Source Sans 3',sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+    .field-bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+    .field-bg::before{content:'';position:absolute;inset:-50%;background:radial-gradient(ellipse 80% 55% at 50% 45%,rgba(46,158,69,.06) 0%,transparent 70%),radial-gradient(circle at 20% 80%,rgba(212,168,67,.04) 0%,transparent 50%),radial-gradient(circle at 85% 15%,rgba(212,168,67,.03) 0%,transparent 50%);animation:fieldPulse 14s ease-in-out infinite alternate}
+    .field-lines{position:absolute;inset:0;opacity:.025;background-image:linear-gradient(var(--fg) 1px,transparent 1px),linear-gradient(90deg,var(--fg) 1px,transparent 1px);background-size:80px 80px;mask-image:radial-gradient(ellipse 70% 60% at 50% 50%,black,transparent)}
+    .field-center-circle{position:absolute;top:50%;left:50%;width:300px;height:300px;transform:translate(-50%,-50%);border:1px solid rgba(46,158,69,.04);border-radius:50%}
+    .field-center-line{position:absolute;top:0;left:50%;width:1px;height:100%;background:rgba(46,158,69,.025)}
+    @keyframes fieldPulse{0%{transform:scale(1) rotate(0deg);opacity:.6}100%{transform:scale(1.04) rotate(.4deg);opacity:1}}
+    .grass-stripe{position:fixed;left:0;width:100%;height:3px;background:linear-gradient(90deg,transparent,rgba(46,158,69,.18),transparent);z-index:0;pointer-events:none;animation:grassMove linear infinite}
+    @keyframes grassMove{0%{transform:translateY(-100vh);opacity:0}8%{opacity:1}92%{opacity:1}100%{transform:translateY(100vh);opacity:0}}
+    .particle{position:fixed;border-radius:50%;pointer-events:none;z-index:0;opacity:0;animation:particleFloat linear infinite}
+    @keyframes particleFloat{0%{transform:translateY(100vh) scale(0);opacity:0}8%{opacity:.5}90%{opacity:.2}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+    .relative-z{position:relative;z-index:1}
+    .font-display{font-family:'Oswald',sans-serif}
+    ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+    header{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(8,12,15,.82);backdrop-filter:blur(24px);border-bottom:1px solid var(--border)}
+    .nav-inner{max-width:1100px;margin:0 auto;padding:0 1.5rem;height:56px;display:flex;align-items:center;justify-content:space-between}
+    .logo{display:flex;align-items:center;gap:.6rem;cursor:pointer}
+    .logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));display:flex;align-items:center;justify-content:center;color:#0A0A0A;font-size:.85rem}
+    .logo-text{font-family:'Oswald',sans-serif;font-weight:700;font-size:1.1rem;letter-spacing:.08em}
+    .nav-links{display:flex;gap:2rem}
+    .nav-link{font-family:'Oswald',sans-serif;font-weight:500;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-muted);cursor:pointer;transition:color .25s;position:relative;padding:.3rem 0}
+    .nav-link::after{content:'';position:absolute;bottom:-2px;left:0;width:0;height:1.5px;background:var(--gold);transition:width .3s}
+    .nav-link:hover,.nav-link.active{color:var(--gold)}.nav-link:hover::after,.nav-link.active::after{width:100%}
+    .mobile-btn{display:none;background:none;border:1px solid var(--border);color:var(--fg-muted);border-radius:6px;width:36px;height:36px;cursor:pointer;align-items:center;justify-content:center}
+    .mobile-menu{display:none;padding:.5rem 1.5rem 1rem;border-top:1px solid var(--border)}.mobile-menu.open{display:flex;flex-direction:column;gap:.25rem}
+    @media(max-width:640px){.nav-links{display:none}.mobile-btn{display:flex}}
+    section{display:none;padding:6rem 1.5rem 4rem;min-height:100vh}section.active{display:block}
+    .max-w{max-width:1100px;margin:0 auto}
+    .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;min-height:calc(100vh - 6rem)}
+    @media(max-width:768px){.hero-grid{grid-template-columns:1fr;gap:2rem;min-height:auto;padding:3rem 0}}
+    .hero-hosts{display:flex;gap:.5rem;margin-bottom:2rem;flex-wrap:wrap}
+    .host-pill{font-size:.7rem;font-weight:600;letter-spacing:.04em;padding:.25rem .7rem;border-radius:99px;border:1px solid var(--border);color:var(--fg-muted);background:var(--bg-raised)}
+    .hero-title{font-family:'Oswald',sans-serif;font-weight:700;font-size:4rem;line-height:1;letter-spacing:-.02em}.hero-title .accent{color:var(--gold)}
+    @media(max-width:768px){.hero-title{font-size:2.8rem}}
+    .hero-sub{font-size:1rem;color:var(--fg-muted);margin-top:1rem;max-width:420px}
+    .hero-actions{display:flex;gap:.75rem;margin-top:2rem;flex-wrap:wrap}
+    .btn{font-family:'Oswald',sans-serif;font-weight:600;font-size:.85rem;letter-spacing:.05em;text-transform:uppercase;padding:.7rem 1.8rem;border-radius:8px;border:none;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:.5rem}
+    .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:#0A0A0A}.btn-gold:hover{box-shadow:0 4px 24px rgba(212,168,67,.25);transform:translateY(-1px)}
+    .btn-ghost{background:transparent;color:var(--fg-dim);border:1px solid var(--border)}.btn-ghost:hover{border-color:var(--gold-border);color:var(--gold);background:var(--gold-glow)}
+    .btn-sm{padding:.45rem 1.2rem;font-size:.75rem}
+    .btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+    .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+    .stat-block{text-align:center}.stat-num{font-family:'Oswald',sans-serif;font-weight:700;font-size:2.5rem;color:var(--gold);line-height:1}
+    .stat-label{font-size:.7rem;color:var(--fg-muted);margin-top:.4rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+    .card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;transition:all .3s;position:relative;overflow:hidden}
+    .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;transition:opacity .35s}
+    .card:hover{border-color:var(--border-hover);background:var(--bg-card-hover);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,.3)}.card:hover::before{opacity:1}
+    .card-p{padding:1.25rem}.card-p-lg{padding:1.75rem}
+    .sec-head{margin-bottom:2.5rem}
+    .sec-badge{display:inline-flex;align-items:center;gap:.35rem;font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);background:var(--gold-glow);border:1px solid var(--gold-border);padding:.2rem .65rem;border-radius:99px;margin-bottom:.75rem}
+    .sec-badge.green{color:var(--green-light);background:var(--green-glow);border-color:var(--green-border)}
+    .sec-title{font-family:'Oswald',sans-serif;font-weight:700;font-size:2.2rem;line-height:1.1}
+    .sec-desc{color:var(--fg-muted);font-size:.95rem;margin-top:.5rem;max-width:520px}
+    /* PREDICTION CARDS */
+    .pred-card{cursor:pointer}
+    .match-row{display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+    .pred-team{display:flex;align-items:center;gap:.6rem;flex:1;min-width:0}
+    .pred-team.right{justify-content:flex-end;text-align:right}
+    .pred-flag{font-size:1.3rem;flex-shrink:0}
+    .pred-flag-img{width:30px;height:22px;border-radius:3px;object-fit:cover;box-shadow:0 1px 3px rgba(0,0,0,.3);flex-shrink:0}
+    .pred-name{font-family:'Oswald',sans-serif;font-weight:600;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .pred-vs{font-family:'Oswald',sans-serif;font-weight:300;font-size:.7rem;color:var(--fg-muted);letter-spacing:.1em;flex-shrink:0}
+    .pred-score{font-family:'Oswald',sans-serif;font-weight:700;font-size:1.6rem;letter-spacing:.06em;flex-shrink:0;padding:0 .5rem}
+    .conf-badge{font-size:.6rem;font-weight:700;padding:.12rem .5rem;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+    .conf-alta{background:var(--green-glow);color:var(--green-light);border:1px solid var(--green-border)}
+    .conf-media{background:var(--gold-glow);color:var(--gold);border:1px solid var(--gold-border)}
+    .conf-baja{background:var(--red-glow);color:var(--red);border:1px solid rgba(224,64,64,.18)}
+    .pred-probs{display:flex;height:4px;border-radius:99px;overflow:hidden;margin-top:.85rem;background:rgba(255,255,255,.03)}
+    .pred-probs span{transition:width .8s ease}
+    .pred-meta-line{font-size:.72rem;color:var(--fg-muted);display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-top:.7rem}
+    .pred-tag{font-size:.6rem;padding:.1rem .4rem;border-radius:4px;border:1px solid var(--border);color:var(--fg-muted);white-space:nowrap}
+    .pred-tag.gold{border-color:var(--gold-border);color:var(--gold);background:var(--gold-glow)}
+    .pred-detail{display:none;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)}
+    .pred-card.open .pred-detail{display:block;animation:fadeSlide .3s ease-out}
+    @keyframes fadeSlide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+    /* DETAIL PANELS */
+    .d-panel{padding:1rem 0;border-bottom:1px solid var(--border)}.d-panel:last-child{border-bottom:none}
+    .d-title{font-family:'Oswald',sans-serif;font-weight:600;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-muted);margin-bottom:.85rem;display:flex;align-items:center;gap:.4rem}
+    .d-grid{display:grid;gap:.75rem}
+    .d-grid-2{grid-template-columns:1fr 1fr}
+    .d-grid-3{grid-template-columns:repeat(3,1fr)}
+    .d-grid-4{grid-template-columns:repeat(4,1fr)}
+    @media(max-width:640px){.d-grid-2,.d-grid-3,.d-grid-4{grid-template-columns:1fr}}
+    .d-item{text-align:center;padding:.65rem;border-radius:8px;background:var(--bg-raised);border:1px solid var(--border)}
+    .d-val{font-family:'Oswald',sans-serif;font-weight:700;font-size:1.3rem}
+    .d-label{font-size:.6rem;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.05em;margin-top:.15rem}
+    .prob-row{display:flex;align-items:center;gap:.6rem;margin:.4rem 0;font-size:.8rem}
+    .prob-name{width:90px;font-size:.75rem;color:var(--fg-muted)}
+    .prob-bar-wrap{flex:1;height:6px;border-radius:99px;background:rgba(255,255,255,.04);overflow:hidden}
+    .prob-bar-fill{height:100%;border-radius:99px;transition:width .8s ease}
+    .prob-pct{font-family:'Oswald',sans-serif;font-weight:600;font-size:.8rem;width:3rem;text-align:right}
+    .compare-bar{display:flex;align-items:center;gap:.6rem;margin:.5rem 0}
+    .compare-val{font-family:'Oswald',sans-serif;font-weight:600;font-size:.85rem;min-width:2.8rem}
+    .compare-track{flex:1;height:4px;background:var(--border);border-radius:99px;position:relative}
+    .compare-dot{position:absolute;top:50%;width:10px;height:10px;border-radius:50%;background:var(--gold);transform:translate(-50%,-50%);box-shadow:0 0 8px rgba(212,168,67,.5)}
+    .score-pill{display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .65rem;border-radius:6px;background:var(--bg-raised);border:1px solid var(--border);font-family:'Oswald',sans-serif;font-weight:600;font-size:.9rem}
+    .score-pill-prob{font-size:.65rem;color:var(--fg-muted);font-weight:400}
+    .odds-table{width:100%;border-collapse:collapse;font-size:.8rem}
+    .odds-table th{font-family:'Oswald',sans-serif;font-weight:500;font-size:.6rem;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.04em;text-align:left;padding:.35rem .5rem;border-bottom:1px solid var(--border)}
+    .odds-table td{padding:.4rem .5rem;border-bottom:1px solid var(--border)}
+    .odds-val{font-family:'Oswald',sans-serif;font-weight:600}
+    .discrepancy{padding:.65rem;border-radius:8px;background:var(--amber-glow);border:1px solid rgba(255,183,77,.2);font-size:.78rem;color:var(--amber);display:flex;align-items:flex-start;gap:.5rem;margin-top:.65rem;line-height:1.4}
+    .sent-row{display:flex;align-items:center;gap:.6rem;padding:.4rem 0}
+    .sent-label{font-size:.8rem;min-width:90px}
+    .sent-track{flex:1;height:6px;background:var(--border);border-radius:99px;position:relative;overflow:visible}
+    .sent-center{position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--fg-muted);opacity:.3}
+    .sent-fill{position:absolute;top:0;height:100%;border-radius:99px}
+    .sent-score{font-family:'Oswald',sans-serif;font-weight:600;font-size:.85rem;min-width:2.2rem;text-align:right}
+    .sent-reason{font-size:.72rem;color:var(--fg-muted);margin-top:.15rem;margin-left:calc(90px + .6rem + 2.2rem + .6rem)}
+    .hist-item{display:flex;align-items:center;gap:.4rem;padding:.35rem 0;font-size:.78rem;border-bottom:1px solid var(--border)}.hist-item:last-child{border-bottom:none}
+    .hist-result{font-family:'Oswald',sans-serif;font-weight:600;font-size:.65rem;padding:.1rem .4rem;border-radius:4px;text-transform:uppercase}
+    .hist-win{background:var(--green-glow);color:var(--green-light);border:1px solid var(--green-border)}
+    .hist-loss{background:var(--red-glow);color:var(--red);border:1px solid rgba(224,64,64,.18)}
+    .hist-draw{background:var(--amber-glow);color:var(--amber);border:1px solid rgba(255,183,77,.18)}
+    .analysis-text{font-size:.88rem;color:var(--fg-dim);line-height:1.7;white-space:pre-line}
+    .pred-footer{font-size:.65rem;color:var(--fg-muted);display:flex;gap:1rem;flex-wrap:wrap}
+    /* SIM / MATCHES */
+    .sim-controls{display:flex;align-items:center;gap:1rem;margin-bottom:2rem;flex-wrap:wrap}
+    .sim-input{width:120px;padding:.5rem .75rem;border-radius:8px;background:var(--bg-card);border:1px solid var(--border);color:var(--fg);font-family:'Source Sans 3',sans-serif;font-size:.9rem}
+    .sim-input:focus{outline:none;border-color:var(--gold-border)}
+    .champ-row{display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:1px solid var(--border)}.champ-row:last-child{border-bottom:none}
+    .champ-pos{font-family:'Oswald',sans-serif;font-weight:700;font-size:.85rem;width:1.5rem;text-align:center}
+    .champ-flag{font-size:1.1rem}.champ-name{font-family:'Oswald',sans-serif;font-weight:600;font-size:.9rem;flex:1}
+    .champ-bar-wrap{width:140px}.champ-bar{height:5px;border-radius:99px;background:rgba(255,255,255,.04);overflow:hidden}
+    .champ-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold-dark),var(--gold));transition:width 1s ease}
+    .champ-pct{font-family:'Oswald',sans-serif;font-weight:600;font-size:.85rem;width:3.5rem;text-align:right}
+    .group-tabs{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:1.5rem}
+    .group-tab{font-family:'Oswald',sans-serif;font-weight:500;font-size:.8rem;padding:.4rem .9rem;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--fg-muted);cursor:pointer;transition:all .25s}
+    .group-tab:hover{border-color:var(--border-hover);color:var(--fg-dim)}
+    .group-tab.active{background:var(--gold-glow);border-color:var(--gold-border);color:var(--gold)}
+    .group-table{width:100%;border-collapse:collapse}
+    .group-table th{font-family:'Oswald',sans-serif;font-weight:500;font-size:.7rem;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.06em;text-align:left;padding:.5rem .6rem;border-bottom:1px solid var(--border)}
+    .group-table th.num{text-align:center}.group-table td{padding:.55rem .6rem;border-bottom:1px solid var(--border);font-size:.85rem}
+    .group-table td.num{text-align:center;font-family:'Oswald',sans-serif;font-weight:600}
+    .group-table tr.qualified td{color:var(--green-light)}.group-table tr.not-qualified td{color:var(--fg-muted)}
+    .team-cell{display:flex;align-items:center;gap:.5rem}
+    .match-card .date-tag{font-size:.7rem;color:var(--fg-muted);margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border)}
+    .news-snippet{font-size:.8rem;color:var(--fg-dim);margin-top:.75rem;line-height:1.5;padding:.75rem;background:var(--bg-raised);border-radius:6px;border:1px solid var(--border)}
+    /* LOADING / EMPTY */
+    .loading-wrap{text-align:center;padding:3rem 1rem}
+    .loading-spinner{width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1rem}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading-msg{font-size:.85rem;color:var(--fg-muted)}.loading-sub{font-size:.72rem;color:var(--fg-muted);margin-top:.3rem;opacity:.7}
+    .loading-progress{width:200px;height:3px;border-radius:99px;background:var(--border);margin:1rem auto 0;overflow:hidden}
+    .loading-progress-bar{height:100%;border-radius:99px;background:var(--gold);animation:loadBar 2s ease-in-out infinite}
+    @keyframes loadBar{0%{width:0%;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0%;margin-left:100%}}
+    .empty-state{text-align:center;padding:4rem 1rem}.empty-icon{font-size:2.5rem;color:var(--border);margin-bottom:1rem}.empty-text{color:var(--fg-muted);font-size:.9rem}
+    .error-card{border-color:rgba(224,64,64,.2)!important}.error-card .error-msg{font-size:.8rem;color:var(--red);padding:.5rem 0}
+    .toast-wrap{position:fixed;top:4.5rem;right:1.5rem;z-index:999;display:flex;flex-direction:column;gap:.5rem}
+    .toast{padding:.7rem 1rem;border-radius:8px;font-size:.8rem;background:var(--bg-card);border:1px solid var(--border);color:var(--fg-dim);box-shadow:0 8px 30px rgba(0,0,0,.4);display:flex;align-items:center;gap:.5rem;animation:toastIn .35s ease-out;max-width:400px}
+    .toast.out{animation:toastOut .25s ease-in forwards}
+    @keyframes toastIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+    @keyframes toastOut{from{opacity:1}to{transform:translateX(110%);opacity:0}}
+    .reveal{opacity:0;transform:translateY(20px);transition:all .6s ease}.reveal.visible{opacity:1;transform:translateY(0)}
+    footer{position:relative;z-index:1;padding:2rem 1.5rem;border-top:1px solid var(--border);text-align:center}footer p{font-size:.75rem;color:var(--fg-muted)}
+    .sim-grid{display:grid;gap:1.5rem;grid-template-columns:1fr 1fr}
+    .matches-grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+    @media(max-width:768px){.sim-grid{grid-template-columns:1fr}}
+    .api-status{display:inline-flex;align-items:center;gap:.35rem;font-size:.7rem;color:var(--fg-muted);margin-top:.5rem}
+    .api-dot{width:6px;height:6px;border-radius:50%}.api-dot.ok{background:var(--green-light);box-shadow:0 0 6px var(--green-light)}.api-dot.err{background:var(--red);box-shadow:0 0 6px var(--red)}.api-dot.loading{background:var(--amber);animation:blink 1s infinite}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
   </style>
 </head>
 <body>
-  <div class="field-bg">
-    <div class="field-lines"></div>
-    <div class="field-center-circle"></div>
-    <div class="field-center-line"></div>
-  </div>
-  <div id="grassStripes"></div>
-  <div id="particles"></div>
+  <div class="field-bg"><div class="field-lines"></div><div class="field-center-circle"></div><div class="field-center-line"></div></div>
+  <div id="grassStripes"></div><div id="particles"></div>
   <div class="toast-wrap" id="toasts"></div>
-
   <header>
     <nav class="nav-inner">
-      <div class="logo" onclick="go('home')">
-        <div class="logo-icon"><i class="fa-solid fa-futbol"></i></div>
-        <span class="logo-text">GOLAZO</span>
-      </div>
+      <div class="logo" onclick="go('home')"><div class="logo-icon"><i class="fa-solid fa-futbol"></i></div><span class="logo-text">GOLAZO</span></div>
       <div class="nav-links">
         <span class="nav-link active" data-s="home" onclick="go('home')">Inicio</span>
         <span class="nav-link" data-s="predictions" onclick="go('predictions')">Predicciones</span>
         <span class="nav-link" data-s="simulation" onclick="go('simulation')">Simulacion</span>
         <span class="nav-link" data-s="matches" onclick="go('matches')">Partidos</span>
       </div>
-      <button class="mobile-btn" onclick="document.getElementById('mobMenu').classList.toggle('open')" aria-label="Menu">
-        <i class="fa-solid fa-bars"></i>
-      </button>
+      <button class="mobile-btn" onclick="document.getElementById('mobMenu').classList.toggle('open')" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
     </nav>
     <div class="mobile-menu" id="mobMenu">
       <span class="nav-link active" data-s="home" onclick="go('home');this.closest('.mobile-menu').classList.remove('open')">Inicio</span>
@@ -384,681 +195,267 @@
       <span class="nav-link" data-s="matches" onclick="go('matches');this.closest('.mobile-menu').classList.remove('open')">Partidos</span>
     </div>
   </header>
-
   <div class="relative-z">
-    <!-- HOME -->
-    <section id="sec-home" class="active">
-      <div class="max-w">
-        <div class="hero-grid">
-          <div>
-            <div class="hero-hosts reveal">
-              <span class="host-pill">🇺🇸 USA</span>
-              <span class="host-pill">🇲🇽 Mexico</span>
-              <span class="host-pill">🇨🇦 Canada</span>
-            </div>
-            <h1 class="hero-title reveal">MUNDIAL<br><span class="accent">2026</span></h1>
-            <p class="hero-sub reveal">Predictor inteligente con simulaciones Monte Carlo para la FIFA World Cup. 48 equipos, 3 sedes, un campeon.</p>
-            <div class="hero-actions reveal">
-              <button class="btn btn-gold" onclick="go('predictions')"><i class="fa-solid fa-bolt"></i> Predicciones</button>
-              <button class="btn btn-ghost" onclick="go('simulation')">Simular Torneo</button>
-            </div>
-            <div class="api-status reveal" id="apiStatusHome">
-              <span class="api-dot loading"></span> Verificando API...
-            </div>
-          </div>
-          <div class="hero-stats reveal">
-            <div class="stat-block"><div class="stat-num" id="heroTeams">—</div><div class="stat-label">Selecciones</div></div>
-            <div class="stat-block"><div class="stat-num" id="heroMatches">—</div><div class="stat-label">Partidos</div></div>
-            <div class="stat-block"><div class="stat-num" id="heroStadiums">—</div><div class="stat-label">Sedes</div></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PREDICCIONES -->
-    <section id="sec-predictions">
-      <div class="max-w">
-        <div class="sec-head reveal">
-          <div class="sec-badge"><i class="fa-solid fa-chart-bar"></i> Modelo Predictivo</div>
-          <h2 class="sec-title">Predicciones del Dia</h2>
-          <p class="sec-desc" id="predDateDesc">Cargando predicciones...</p>
-        </div>
-        <div id="predList" class="flex flex-col gap-3">
-          <div class="loading-spinner"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- SIMULACION -->
-    <section id="sec-simulation">
-      <div class="max-w">
-        <div class="sec-head reveal">
-          <div class="sec-badge green"><i class="fa-solid fa-dice"></i> Monte Carlo</div>
-          <h2 class="sec-title">Simulacion de Torneo</h2>
-          <p class="sec-desc">Simula miles de escenarios completos para estimar probabilidades reales de campeonato.</p>
-        </div>
-        <div class="sim-controls reveal">
-          <input type="number" class="sim-input" id="simCount" value="5000" min="100" max="100000" step="1000">
-          <button class="btn btn-gold btn-sm" id="simBtn" onclick="runSim()"><i class="fa-solid fa-play"></i> Ejecutar</button>
-          <span id="simStatus" class="text-sm" style="color:var(--fg-muted)"></span>
-        </div>
-        <div class="sim-grid">
-          <div class="card card-p-lg reveal">
-            <h3 class="font-display font-600 text-sm tracking-wider mb-4" style="color:var(--fg-muted); text-transform:uppercase; letter-spacing:.06em;">Probabilidad de Campeonato</h3>
-            <div id="champList"><div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-trophy"></i></div><div class="empty-text">Ejecuta una simulacion para ver resultados</div></div></div>
-          </div>
-          <div class="card card-p-lg reveal">
-            <h3 class="font-display font-600 text-sm tracking-wider mb-4" style="color:var(--fg-muted); text-transform:uppercase; letter-spacing:.06em;">Tabla de Grupo</h3>
-            <div class="group-tabs" id="groupTabs"></div>
-            <div id="groupTableWrap"><div class="empty-state"><div class="empty-text">Selecciona un grupo</div></div></div>
-          </div>
-        </div>
-        <div class="card card-p-lg mt-6 reveal" id="lastSimCard" style="display:none;">
-          <h3 class="font-display font-600 text-sm tracking-wider mb-3" style="color:var(--fg-muted); text-transform:uppercase; letter-spacing:.06em;">Ultima Simulacion Completa</h3>
-          <div id="lastSimContent"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PARTIDOS -->
-    <section id="sec-matches">
-      <div class="max-w">
-        <div class="sec-head reveal">
-          <div class="sec-badge"><i class="fa-solid fa-calendar"></i> Proximos Encuentros</div>
-          <h2 class="sec-title">Partidos Proximos</h2>
-          <p class="sec-desc" id="matchDateDesc">Cargando partidos...</p>
-        </div>
-        <div id="matchList" class="matches-grid">
-          <div class="loading-spinner"></div>
-        </div>
-      </div>
-    </section>
+    <section id="sec-home" class="active"><div class="max-w"><div class="hero-grid"><div>
+      <div class="hero-hosts reveal"><span class="host-pill">🇺🇸 USA</span><span class="host-pill">🇲🇽 Mexico</span><span class="host-pill">🇨🇦 Canada</span></div>
+      <h1 class="hero-title reveal">MUNDIAL<br><span class="accent">2026</span></h1>
+      <p class="hero-sub reveal">Predictor inteligente con simulaciones Monte Carlo para la FIFA World Cup. 48 equipos, 3 sedes, un campeon.</p>
+      <div class="hero-actions reveal"><button class="btn btn-gold" onclick="go('predictions')"><i class="fa-solid fa-bolt"></i> Predicciones</button><button class="btn btn-ghost" onclick="go('simulation')">Simular Torneo</button></div>
+      <div class="api-status reveal" id="apiStatusHome"><span class="api-dot loading"></span> Verificando API...</div>
+    </div><div class="hero-stats reveal">
+      <div class="stat-block"><div class="stat-num" id="heroTeams">—</div><div class="stat-label">Selecciones</div></div>
+      <div class="stat-block"><div class="stat-num" id="heroMatches">—</div><div class="stat-label">Partidos</div></div>
+      <div class="stat-block"><div class="stat-num" id="heroStadiums">—</div><div class="stat-label">Sedes</div></div>
+    </div></div></div></section>
+    <section id="sec-predictions"><div class="max-w">
+      <div class="sec-head reveal"><div class="sec-badge"><i class="fa-solid fa-chart-bar"></i> Modelo Predictivo</div><h2 class="sec-title">Predicciones del Dia</h2><p class="sec-desc" id="predDateDesc">Cargando predicciones...</p></div>
+      <div id="predList" class="flex flex-col gap-4"></div>
+    </div></section>
+    <section id="sec-simulation"><div class="max-w">
+      <div class="sec-head reveal"><div class="sec-badge green"><i class="fa-solid fa-dice"></i> Monte Carlo</div><h2 class="sec-title">Simulacion de Torneo</h2><p class="sec-desc">Simula miles de escenarios para estimar probabilidades reales.</p></div>
+      <div class="sim-controls reveal"><input type="number" class="sim-input" id="simCount" value="1000" min="100" max="100000" step="500"><button class="btn btn-gold btn-sm" id="simBtn" onclick="runSim()"><i class="fa-solid fa-play"></i> Ejecutar</button><span id="simStatus" class="text-sm" style="color:var(--fg-muted)"></span></div>
+      <div class="sim-grid"><div class="card card-p-lg reveal"><h3 class="font-display font-600 text-sm tracking-wider mb-4" style="color:var(--fg-muted);text-transform:uppercase;letter-spacing:.06em;">Probabilidad de Campeonato</h3><div id="champList"><div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-trophy"></i></div><div class="empty-text">Ejecuta una simulacion</div></div></div></div><div class="card card-p-lg reveal"><h3 class="font-display font-600 text-sm tracking-wider mb-4" style="color:var(--fg-muted);text-transform:uppercase;letter-spacing:.06em;">Tabla de Grupo</h3><div class="group-tabs" id="groupTabs"></div><div id="groupTableWrap"><div class="empty-state"><div class="empty-text">Selecciona un grupo</div></div></div></div></div>
+      <div class="card card-p-lg mt-6 reveal" id="lastSimCard" style="display:none;"><h3 class="font-display font-600 text-sm tracking-wider mb-3" style="color:var(--fg-muted);text-transform:uppercase;letter-spacing:.06em;">Ultima Simulacion</h3><div id="lastSimContent"></div></div>
+    </div></section>
+    <section id="sec-matches"><div class="max-w">
+      <div class="sec-head reveal"><div class="sec-badge"><i class="fa-solid fa-calendar"></i> Proximos Encuentros</div><h2 class="sec-title">Partidos Proximos</h2><p class="sec-desc" id="matchDateDesc">Cargando partidos...</p></div>
+      <div id="matchList" class="matches-grid"></div>
+    </div></section>
   </div>
+  <footer class="relative-z"><p>GOLAZO 2026 — Predicciones por modelos estadisticos. No constituyen apuesta garantizada.</p></footer>
 
-  <footer class="relative-z">
-    <p>GOLAZO 2026 — Predicciones generadas por modelos estadisticos. No constituyen apuesta garantizada.</p>
-  </footer>
+<script>
+const API='https://golazo-api-00y6.onrender.com';
+const TIMEOUTS={'/':30000,'/api/v1/teams':45000,'/api/v1/stadiums':45000,'/api/v1/matches/upcoming':90000,'/api/v1/predictions/today':120000,'/api/v1/simulation/run':120000};
+let apiOnline=false,apiWarming=false,apiWarm=false;
+const state={predictions:null,simulation:null,upcoming:null,loading:{predictions:false,simulation:false,matches:false},selectedGroup:'A',upcomingMap:{}};
 
-  <script>
-    // =============================================================
-    // API
-    // =============================================================
-    const API = 'https://golazo-api-00y6.onrender.com';
-    let apiOnline = false;
+const TEAMS_MAP=[
+  {es:"México",en:"Mexico",f:"🇲🇽"},{es:"Sudáfrica",en:"South Africa",f:"🇿🇦"},{es:"Corea del Sur",en:"South Korea",f:"🇰🇷"},
+  {es:"República Checa",en:"Czech Republic",f:"🇨🇿"},{es:"Canadá",en:"Canada",f:"🇨🇦"},{es:"Bosnia y Herzegovina",en:"Bosnia and Herzegovina",f:"🇧🇦"},
+  {es:"Catar",en:"Qatar",f:"🇶🇦"},{es:"Suiza",en:"Switzerland",f:"🇨🇭"},{es:"Brasil",en:"Brazil",f:"🇧🇷"},
+  {es:"Marruecos",en:"Morocco",f:"🇲🇦"},{es:"Haití",en:"Haiti",f:"🇭🇹"},{es:"Escocia",en:"Scotland",f:"🏴󠁧󠁢󠁳󠁣󠁴󠁿"},
+  {es:"Estados Unidos",en:"United States",f:"🇺🇸"},{es:"Paraguay",en:"Paraguay",f:"🇵🇾"},{es:"Australia",en:"Australia",f:"🇦🇺"},
+  {es:"Turquía",en:"Turkiye",f:"🇹🇷"},{es:"Alemania",en:"Germany",f:"🇩🇪"},{es:"Curazao",en:"Curacao",f:"🇨🇼"},
+  {es:"Costa de Marfil",en:"Cote d'Ivoire",f:"🇨🇮"},{es:"Ecuador",en:"Ecuador",f:"🇪🇨"},{es:"Países Bajos",en:"Netherlands",f:"🇳🇱"},
+  {es:"Japón",en:"Japan",f:"🇯🇵"},{es:"Suecia",en:"Sweden",f:"🇸🇪"},{es:"Túnez",en:"Tunisia",f:"🇹🇳"},
+  {es:"Bélgica",en:"Belgium",f:"🇧🇪"},{es:"Egipto",en:"Egypt",f:"🇪🇬"},{es:"Irán",en:"Iran",f:"🇮🇷"},
+  {es:"Nueva Zelanda",en:"New Zealand",f:"🇳🇿"},{es:"España",en:"Spain",f:"🇪🇸"},{es:"Uruguay",en:"Uruguay",f:"🇺🇾"},
+  {es:"Arabia Saudita",en:"Saudi Arabia",f:"🇸🇦"},{es:"Cabo Verde",en:"Cape Verde",f:"🇨🇻"},{es:"Francia",en:"France",f:"🇫🇷"},
+  {es:"Senegal",en:"Senegal",f:"🇸🇳"},{es:"Noruega",en:"Norway",f:"🇳🇴"},{es:"Irak",en:"Iraq",f:"🇮🇶"},
+  {es:"Argentina",en:"Argentina",f:"🇦🇷"},{es:"Austria",en:"Austria",f:"🇦🇹"},{es:"Argelia",en:"Algeria",f:"🇩🇿"},
+  {es:"Jordania",en:"Jordan",f:"🇯🇴"},{es:"Portugal",en:"Portugal",f:"🇵🇹"},{es:"Colombia",en:"Colombia",f:"🇨🇴"},
+  {es:"Uzbekistán",en:"Uzbekistan",f:"🇺🇿"},{es:"Rep. Dem. del Congo",en:"Democratic Republic of the Congo",f:"🇨🇩"},
+  {es:"Inglaterra",en:"England",f:"🏴󠁧󠁢󠁥󠁮󠁧󠁿"},{es:"Croacia",en:"Croatia",f:"🇭🇷"},{es:"Panamá",en:"Panama",f:"🇵🇦"},{es:"Ghana",en:"Ghana",f:"🇬🇭"},
+];
+function tm(n){if(!n)return{es:'???',en:'???',f:'⚽'};const s=n.trim(),f=TEAMS_MAP.find(t=>t.es===s||t.en.toLowerCase()===s.toLowerCase());return f||{es:s,en:s,f:'⚽'}}
 
-    // =============================================================
-    // MAPEO DE 48 EQUIPOS
-    // =============================================================
-    const TEAMS_MAP = [
-      { es:"México", en:"Mexico", f:"🇲🇽" },
-      { es:"Sudáfrica", en:"South Africa", f:"🇿🇦" },
-      { es:"Corea del Sur", en:"South Korea", f:"🇰🇷" },
-      { es:"República Checa", en:"Czech Republic", f:"🇨🇿" },
-      { es:"Canadá", en:"Canada", f:"🇨🇦" },
-      { es:"Bosnia y Herzegovina", en:"Bosnia and Herzegovina", f:"🇧🇦" },
-      { es:"Catar", en:"Qatar", f:"🇶🇦" },
-      { es:"Suiza", en:"Switzerland", f:"🇨🇭" },
-      { es:"Brasil", en:"Brazil", f:"🇧🇷" },
-      { es:"Marruecos", en:"Morocco", f:"🇲🇦" },
-      { es:"Haití", en:"Haiti", f:"🇭🇹" },
-      { es:"Escocia", en:"Scotland", f:"🏴󠁧󠁢󠁳󠁣󠁴󠁿" },
-      { es:"Estados Unidos", en:"United States", f:"🇺🇸" },
-      { es:"Paraguay", en:"Paraguay", f:"🇵🇾" },
-      { es:"Australia", en:"Australia", f:"🇦🇺" },
-      { es:"Turquía", en:"Turkiye", f:"🇹🇷" },
-      { es:"Alemania", en:"Germany", f:"🇩🇪" },
-      { es:"Curazao", en:"Curacao", f:"🇨🇼" },
-      { es:"Costa de Marfil", en:"Cote d'Ivoire", f:"🇨🇮" },
-      { es:"Ecuador", en:"Ecuador", f:"🇪🇨" },
-      { es:"Países Bajos", en:"Netherlands", f:"🇳🇱" },
-      { es:"Japón", en:"Japan", f:"🇯🇵" },
-      { es:"Suecia", en:"Sweden", f:"🇸🇪" },
-      { es:"Túnez", en:"Tunisia", f:"🇹🇳" },
-      { es:"Bélgica", en:"Belgium", f:"🇧🇪" },
-      { es:"Egipto", en:"Egypt", f:"🇪🇬" },
-      { es:"Irán", en:"Iran", f:"🇮🇷" },
-      { es:"Nueva Zelanda", en:"New Zealand", f:"🇳🇿" },
-      { es:"España", en:"Spain", f:"🇪🇸" },
-      { es:"Uruguay", en:"Uruguay", f:"🇺🇾" },
-      { es:"Arabia Saudita", en:"Saudi Arabia", f:"🇸🇦" },
-      { es:"Cabo Verde", en:"Cape Verde", f:"🇨🇻" },
-      { es:"Francia", en:"France", f:"🇫🇷" },
-      { es:"Senegal", en:"Senegal", f:"🇸🇳" },
-      { es:"Noruega", en:"Norway", f:"🇳🇴" },
-      { es:"Irak", en:"Iraq", f:"🇮🇶" },
-      { es:"Argentina", en:"Argentina", f:"🇦🇷" },
-      { es:"Austria", en:"Austria", f:"🇦🇹" },
-      { es:"Argelia", en:"Algeria", f:"🇩🇿" },
-      { es:"Jordania", en:"Jordan", f:"🇯🇴" },
-      { es:"Portugal", en:"Portugal", f:"🇵🇹" },
-      { es:"Colombia", en:"Colombia", f:"🇨🇴" },
-      { es:"Uzbekistán", en:"Uzbekistan", f:"🇺🇿" },
-      { es:"Rep. Dem. del Congo", en:"Democratic Republic of the Congo", f:"🇨🇩" },
-      { es:"Inglaterra", en:"England", f:"🏴󠁧󠁢󠁥󠁮󠁧󠁿" },
-      { es:"Croacia", en:"Croatia", f:"🇭🇷" },
-      { es:"Panamá", en:"Panama", f:"🇵🇦" },
-      { es:"Ghana", en:"Ghana", f:"🇬🇭" },
-    ];
+// ===== WARMUP =====
+async function warmupAPI(){if(apiWarm)return true;if(apiWarming){let w=0;while(apiWarming&&w<90000){await new Promise(r=>setTimeout(r,2000));w+=2000}return apiWarm}apiWarming=true;try{const r=await fetch(`${API}/`,{signal:AbortSignal.timeout(60000),headers:{'Accept':'application/json'}});if(r.ok){const d=await r.json();if(d.status==='online'){apiWarm=true;apiOnline=true;apiWarming=false;return true}}}catch(e){}apiWarming=false;return false}
 
-    // Busca por español o inglés
-    function tm(name) {
-      if (!name) return { es: '???', en: '???', f: '⚽' };
-      const n = name.trim();
-      const found = TEAMS_MAP.find(t => t.es === n || t.en.toLowerCase() === n.toLowerCase());
-      return found || { es: n, en: n, f: '⚽' };
-    }
+// ===== API FETCH =====
+async function apiGet(path,params={},retries=2){const timeout=TIMEOUTS[path]||60000;const url=new URL(`${API}${path}`);Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));const urlStr=url.toString();if(path!=='/'&&!apiWarm)await warmupAPI();for(let a=0;a<=retries;a++){try{const res=await fetch(urlStr,{signal:AbortSignal.timeout(timeout),headers:{'Accept':'application/json'}});if(!res.ok){if(a<retries){await new Promise(r=>setTimeout(r,3000*(a+1)));continue}return null}const text=await res.text();try{return JSON.parse(text)}catch(e){if(a<retries){await new Promise(r=>setTimeout(r,2000));continue}return null}}catch(e){if(a<retries){if(e.name==='TimeoutError'&&!apiWarm){apiWarm=false;await warmupAPI()}await new Promise(r=>setTimeout(r,5000*(a+1)));continue}if(e.name==='TimeoutError')apiWarm=false;return null}}return null}
 
-    // =============================================================
-    // ESTADO
-    // =============================================================
-    const state = {
-      predictions: null,
-      simulation: null,
-      upcoming: null,
-      loading: { predictions: false, simulation: false, matches: false },
-      selectedGroup: 'A',
-    };
+// ===== NAV =====
+function go(s){document.querySelectorAll('section').forEach(el=>el.classList.remove('active'));const el=document.getElementById(`sec-${s}`);if(el){el.classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}document.querySelectorAll('.nav-link').forEach(l=>l.classList.toggle('active',l.dataset.s===s));if(s==='predictions'&&!state.predictions&&!state.loading.predictions)loadPredictions();if(s==='simulation'&&!state.simulation&&!state.loading.simulation)runSim();if(s==='matches'&&!state.upcoming&&!state.loading.matches)loadMatches();setTimeout(initReveals,80)}
 
-    // =============================================================
-    // API FETCH — con manejo robusto de errores
-    // =============================================================
-    async function apiGet(path, params = {}) {
-      const url = new URL(`${API}${path}`);
-      Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-      try {
-        const res = await fetch(url.toString(), {
-          signal: AbortSignal.timeout(30000),
-          headers: { 'Accept': 'application/json' }
-        });
-        if (!res.ok) {
-          console.warn(`API ${path}: HTTP ${res.status}`);
-          return null;
-        }
-        const text = await res.text();
-        try {
-          return JSON.parse(text);
-        } catch (e) {
-          console.warn(`API ${path}: JSON parse error`, text.substring(0, 200));
-          return null;
-        }
-      } catch (e) {
-        if (e.name === 'TimeoutError') {
-          console.warn(`API ${path}: Timeout (30s)`);
-        } else {
-          console.warn(`API ${path}:`, e.message);
-        }
-        return null;
+// ===== TOAST =====
+function toast(msg,type='info'){const ic={info:'fa-circle-info',warn:'fa-triangle-exclamation',error:'fa-circle-xmark',ok:'fa-circle-check'},co={info:'var(--gold)',warn:'var(--amber)',error:'var(--red)',ok:'var(--green-light)'},w=document.getElementById('toasts'),el=document.createElement('div');el.className='toast';el.innerHTML=`<i class="fa-solid ${ic[type]||ic.info}" style="color:${co[type]||co.info};flex-shrink:0;"></i><span>${msg}</span>`;w.appendChild(el);setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),300)},5000)}
+
+// ===== UTILS =====
+function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function emptyHTML(icon,msg,retry){return`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon"><i class="fa-solid ${icon}"></i></div><div class="empty-text">${esc(msg)}${retry?'<br><button class="btn btn-ghost btn-sm mt-4" onclick="location.reload()"><i class="fa-solid fa-rotate"></i> Reintentar</button>':''}</div></div>`}
+function loadingHTML(msg,sub){return`<div class="loading-wrap"><div class="loading-spinner"></div><div class="loading-msg">${msg||'Cargando...'}</div>${sub?`<div class="loading-sub">${sub}</div>`:''}<div class="loading-progress"><div class="loading-progress-bar"></div></div></div>`}
+function confClass(c){const l=(c||'').toLowerCase();return l==='alta'?'conf-alta':l==='baja'?'conf-baja':'conf-media'}
+function flagHTML(teamName,info,side){const url=info&&info[`${side}_flag`];if(url)return`<img src="${url}" class="pred-flag-img" alt="" onerror="this.outerHTML='${esc(tm(teamName).f)}'">`;return`<span class="pred-flag">${tm(teamName).f}</span>`}
+function matchResult(m){const gf=m.goals_for,ga=m.goals_against;return gf>ga?'win':gf<ga?'loss':'draw'}
+function resultLabel(r){return r==='win'?'V':r==='loss'?'D':'E'}
+function resultClass(r){return r==='win'?'hist-win':r==='loss'?'hist-loss':'hist-draw'}
+function pct(v){return typeof v==='number'?(v*100).toFixed(1)+'%':'—'}
+
+// ===== PREDICCIONES =====
+async function loadPredictions(){
+  state.loading.predictions=true;
+  const el=document.getElementById('predList');
+  el.innerHTML=loadingHTML('Obteniendo predicciones y partidos...','Primera visita puede tardar hasta 2 minutos por cold start');
+  // Cargar ambos en paralelo
+  const [predData,upData]=await Promise.all([apiGet('/api/v1/predictions/today'),apiGet('/api/v1/matches/upcoming')]);
+  state.loading.predictions=false;
+  // Crear mapa de upcoming por match_id
+  if(upData){const matches=Array.isArray(upData)?upData:(upData.matches||[]);matches.forEach(m=>{state.upcomingMap[m.match_id]=m})}
+  if(!predData){el.innerHTML=emptyHTML('fa-plug-circle-xmark','No se pudo conectar con la API.',true);return}
+  const matches=predData.matches||[];
+  if(!matches.length){const msg=predData.message||'No hay predicciones disponibles.';document.getElementById('predDateDesc').textContent=msg;el.innerHTML=emptyHTML('fa-futbol',msg,true);return}
+  state.predictions=predData;
+  document.getElementById('predDateDesc').textContent=`Fecha: ${predData.date||'—'} — ${predData.count||matches.length} partido${matches.length!==1?'s':''}`;
+  renderPredictions(matches);
+}
+
+function renderPredictions(matches){
+  document.getElementById('predList').innerHTML=matches.map(p=>{
+    if(p.error){const h=tm(p.home_team),a=tm(p.away_team);return`<div class="card card-p error-card"><div class="match-row"><div class="pred-team"><span class="pred-flag">${h.f}</span><span class="pred-name">${h.es}</span></div><span class="pred-vs">VS</span><div class="pred-team right"><span class="pred-name">${a.es}</span><span class="pred-flag">${a.f}</span></div></div><div class="error-msg"><i class="fa-solid fa-circle-xmark"></i> ${esc(p.error)}</div></div>`}
+    const info=state.upcomingMap[p.match_id]||{};
+    const mp=p.model_prediction||{};
+    const probs=mp.probabilities||{};
+    const hw=(probs.home_win||0)*100,dr=(probs.draw||0)*100,aw=(probs.away_win||0)*100;
+    const score=mp.score||'—';
+    const conf=mp.confidence||'';
+    const hasDetail=mp.winner||p.odds?.available||p.analysis||p.sentiment;
+    const time=info.datetimeMX?info.datetimeMX.split('T')[1]?.substring(0,5):'';
+    const venue=info.venue?`${info.venue}, ${info.city||''}`:'';
+    const group=info.group||p.stage||'Fase de Grupos';
+    const oddsAvail=p.odds?.available;
+    return`<div class="card card-p pred-card" ${hasDetail?`onclick="this.classList.toggle('open')"`:''}>
+      <div class="match-row">
+        <div class="pred-team">${flagHTML(p.home_team,info,'home')}<span class="pred-name">${esc(p.home_team)}</span></div>
+        <span class="pred-score">${esc(score)}</span>
+        <div class="pred-team right"><span class="pred-name">${esc(p.away_team)}</span>${flagHTML(p.away_team,info,'away')}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.6rem;margin-top:.6rem">
+        <span class="conf-badge ${confClass(conf)}">${esc(conf)}</span>
+        <div class="pred-probs" style="flex:1"><span style="width:${hw}%;background:var(--green-light)"></span><span style="width:${dr}%;background:var(--fg-muted)"></span><span style="width:${aw}%;background:var(--red)"></span></div>
+        <span style="font-family:'Oswald';font-weight:600;font-size:.7rem;color:var(--green-light);">${hw.toFixed(0)}%</span>
+      </div>
+      <div class="pred-meta-line">
+        <span class="pred-tag">${esc(group)}</span>
+        ${time?`<span><i class="fa-regular fa-clock" style="margin-right:.2rem;"></i>${time} CDMX</span>`:''}
+        ${venue?`<span><i class="fa-solid fa-location-dot" style="margin-right:.2rem;"></i>${esc(venue)}</span>`:''}
+        ${oddsAvail?`<span class="pred-tag gold"><i class="fa-solid fa-chart-line"></i> Cuotas</span>`:''}
+      </div>
+      ${hasDetail?`<div class="pred-detail">${renderDetail(p,info)}</div>`:''}
+    </div>`}).join('');
+}
+
+function renderDetail(p,info){
+  const mp=p.model_prediction||{};const odds=p.odds||{};const sent=p.sentiment||{};
+  let html='';
+  // Panel 1: Modelo
+  if(mp.winner){
+    const probs=mp.probabilities||{};const ts=mp.top_scores||[];
+    html+=`<div class="d-panel"><div class="d-title"><i class="fa-solid fa-brain"></i> Modelo Predictivo</div>
+      <div style="text-align:center;margin-bottom:1rem">
+        <div style="font-size:.7rem;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.06em;">Pronostico</div>
+        <div style="font-family:'Oswald';font-weight:700;font-size:2rem;margin:.3rem 0;">${esc(mp.winner)}</div>
+        <span class="conf-badge ${confClass(mp.confidence)}">${esc(mp.confidence||'')}</span>
+      </div>
+      <div class="prob-row"><span class="prob-name">Victoria Local</span><div class="prob-bar-wrap"><div class="prob-bar-fill" style="width:${(probs.home_win||0)*100}%;background:var(--green-light)"></div></div><span class="prob-pct" style="color:var(--green-light)">${pct(probs.home_win)}</span></div>
+      <div class="prob-row"><span class="prob-name">Empate</span><div class="prob-bar-wrap"><div class="prob-bar-fill" style="width:${(probs.draw||0)*100}%;background:var(--fg-muted)"></div></div><span class="prob-pct">${pct(probs.draw)}</span></div>
+      <div class="prob-row"><span class="prob-name">Victoria Visit.</span><div class="prob-bar-wrap"><div class="prob-bar-fill" style="width:${(probs.away_win||0)*100}%;background:var(--red)"></div></div><span class="prob-pct" style="color:var(--red)">${pct(probs.away_win)}</span></div>
+      ${ts.length?`<div style="margin-top:1rem"><div style="font-size:.65rem;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.4rem;">Marcadores mas probables</div><div style="display:flex;gap:.5rem;flex-wrap:wrap">${ts.slice(0,4).map(s=>`<span class="score-pill">${esc(s.score)} <span class="score-pill-prob">${pct(s.probability)}</span></span>`).join('')}</div></div>`:''}
+    </div>`;
+    // xG + Elo
+    if(mp.xg_home!=null||mp.elo_home!=null){
+      html+=`<div class="d-panel"><div class="d-title"><i class="fa-solid fa-chart-simple"></i> Metricas</div><div class="d-grid d-grid-2">`;
+      if(mp.xg_home!=null){
+        const max=Math.max(mp.xg_home,mp.xg_away,0.01);
+        const posH=((mp.xg_home/max)*100).toFixed(1);
+        html+=`<div><div style="font-size:.65rem;color:var(--fg-muted);text-transform:uppercase;margin-bottom:.4rem;">xG Esperado</div><div class="compare-bar"><span class="compare-val">${mp.xg_home.toFixed(2)}</span><div class="compare-track"><div class="compare-dot" style="left:${posH}%"></div></div><span class="compare-val" style="text-align:right">${mp.xg_away.toFixed(2)}</span></div><div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--fg-muted);margin-top:.2rem"><span>${esc(p.home_team)}</span><span>${esc(p.away_team)}</span></div></div>`;
       }
-    }
-
-    // =============================================================
-    // NAVEGACION
-    // =============================================================
-    function go(section) {
-      document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
-      const el = document.getElementById(`sec-${section}`);
-      if (el) { el.classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-      document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.s === section));
-      if (section === 'predictions' && !state.predictions && !state.loading.predictions) loadPredictions();
-      if (section === 'simulation' && !state.simulation && !state.loading.simulation) runSim();
-      if (section === 'matches' && !state.upcoming && !state.loading.matches) loadMatches();
-      setTimeout(initReveals, 80);
-    }
-
-    // =============================================================
-    // TOAST
-    // =============================================================
-    function toast(msg, type = 'info') {
-      const icons = { info:'fa-circle-info', warn:'fa-triangle-exclamation', error:'fa-circle-xmark', ok:'fa-circle-check' };
-      const colors = { info:'var(--gold)', warn:'var(--amber)', error:'var(--red)', ok:'var(--green-light)' };
-      const wrap = document.getElementById('toasts');
-      const el = document.createElement('div');
-      el.className = 'toast';
-      el.innerHTML = `<i class="fa-solid ${icons[type]||icons.info}" style="color:${colors[type]||colors.info};flex-shrink:0;"></i><span>${msg}</span>`;
-      wrap.appendChild(el);
-      setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, 5000);
-    }
-
-    // =============================================================
-    // HELPERS PARA LEER CAMPOS DE PREDICCION
-    // La API puede usar distintos nombres de campo
-    // =============================================================
-    function safeGet(obj, ...keys) {
-      for (const k of keys) {
-        if (obj != null && obj[k] !== undefined && obj[k] !== null) return obj[k];
+      if(mp.elo_home!=null){
+        const eMin=Math.min(mp.elo_home,mp.elo_away);const eMax=Math.max(mp.elo_home,mp.elo_away);const eRange=Math.max(eMax-eMin,1);
+        const posE=((mp.elo_home-eMin)/eRange*100).toFixed(1);
+        html+=`<div><div style="font-size:.65rem;color:var(--fg-muted);text-transform:uppercase;margin-bottom:.4rem;">Rating Elo</div><div class="compare-bar"><span class="compare-val">${Math.round(mp.elo_home)}</span><div class="compare-track"><div class="compare-dot" style="left:${posE}%"></div></div><span class="compare-val" style="text-align:right">${Math.round(mp.elo_away)}</span></div><div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--fg-muted);margin-top:.2rem"><span>${esc(p.home_team)}</span><span>${esc(p.away_team)}</span></div></div>`;
       }
-      return null;
+      html+=`</div></div>`;
     }
-
-    function getProbFields(p) {
-      const hw = safeGet(p, 'home_win_prob', 'home_win', 'prob_home', 'p_home', 'win_home');
-      const dr = safeGet(p, 'draw_prob', 'draw', 'prob_draw', 'p_draw');
-      const aw = safeGet(p, 'away_win_prob', 'away_win', 'prob_away', 'p_away', 'win_away');
-      const home = parseFloat(hw) || 33;
-      const draw = parseFloat(dr) || 34;
-      const away = parseFloat(aw) || 33;
-      // Normalizar a 100%
-      const total = home + draw + away;
-      if (total > 0 && Math.abs(total - 100) > 0.5) {
-        const scale = 100 / total;
-        return { home: home * scale, draw: draw * scale, away: away * scale };
-      }
-      return { home, draw, away };
-    }
-
-    function getGoalsFields(p) {
-      const hg = safeGet(p, 'predicted_home_goals', 'home_xg', 'xg_home', 'expected_home', 'home_expected');
-      const ag = safeGet(p, 'predicted_away_goals', 'away_xg', 'xg_away', 'expected_away', 'away_expected');
-      return {
-        home: hg !== null ? parseFloat(hg) : null,
-        away: ag !== null ? parseFloat(ag) : null,
-      };
-    }
-
-    function getHistoryFields(p, side) {
-      // side = 'home' o 'away'
-      const keys = [
-        `recent_${side}_matches`,
-        `${side}_history`,
-        `${side}_recent`,
-        `history_${side}`,
-      ];
-      return safeGet(p, ...keys) || [];
-    }
-
-    // =============================================================
-    // PREDICCIONES
-    // =============================================================
-    async function loadPredictions() {
-      state.loading.predictions = true;
-      const el = document.getElementById('predList');
-      el.innerHTML = '<div class="loading-spinner"></div>';
-
-      const data = await apiGet('/api/v1/predictions/today');
-      state.loading.predictions = false;
-
-      // La API puede devolver null, o un objeto sin matches
-      if (!data) {
-        el.innerHTML = emptyState('fa-plug-circle-xmark', 'No se pudo conectar con la API. Verifica que este online.', true);
-        return;
-      }
-
-      const matches = data.matches || [];
-      if (matches.length === 0) {
-        const msg = data.message || data.fallback === false ? 'No hay predicciones disponibles para este momento.' : 'No hay partidos proximos disponibles.';
-        el.innerHTML = emptyState('fa-futbol', msg, true);
-        return;
-      }
-
-      state.predictions = data;
-      const dateStr = data.date || 'Fecha no disponible';
-      document.getElementById('predDateDesc').textContent = `Fecha: ${dateStr} — ${data.count || matches.length} partido${matches.length !== 1 ? 's' : ''}`;
-      renderPredictions(matches);
-    }
-
-    function renderPredictions(matches) {
-      const el = document.getElementById('predList');
-      el.innerHTML = matches.map(p => {
-        // Si la prediccion tiene error, mostrar tarjeta de error
-        if (p.error) {
-          const home = tm(p.home_team);
-          const away = tm(p.away_team);
-          return `<div class="card card-p error-card">
-            <div class="match-row">
-              <div class="pred-team"><span class="pred-flag">${home.f}</span><span class="pred-name">${home.es}</span></div>
-              <span class="pred-vs">VS</span>
-              <div class="pred-team right"><span class="pred-name">${away.es}</span><span class="pred-flag">${away.f}</span></div>
-            </div>
-            <div class="error-msg"><i class="fa-solid fa-circle-xmark"></i> Error: ${escapeHtml(p.error)}</div>
-          </div>`;
-        }
-
-        const home = tm(p.home_team);
-        const away = tm(p.away_team);
-        const probs = getProbFields(p);
-        const goals = getGoalsFields(p);
-        const rh = getHistoryFields(p, 'home');
-        const ra = getHistoryFields(p, 'away');
-
-        const hasNews = p.home_news || p.away_news || p.match_news;
-        const hasHistory = (Array.isArray(rh) && rh.length > 0) || (Array.isArray(ra) && ra.length > 0);
-        const hasDetail = goals.home !== null || hasNews || hasHistory;
-
-        return `
-        <div class="card card-p pred-card${hasDetail ? '' : ''}" ${hasDetail ? `onclick="this.classList.toggle('open')"` : ''}>
-          <div class="match-row">
-            <div class="pred-team"><span class="pred-flag">${home.f}</span><span class="pred-name">${home.es}</span></div>
-            <span class="pred-vs">VS</span>
-            <div class="pred-team right"><span class="pred-name">${away.es}</span><span class="pred-flag">${away.f}</span></div>
-          </div>
-          <div class="pred-probs">
-            <span style="width:${probs.home}%; background:var(--green-light);"></span>
-            <span style="width:${probs.draw}%; background:var(--fg-muted);"></span>
-            <span style="width:${probs.away}%; background:var(--red);"></span>
-          </div>
-          <div class="pred-meta">
-            <span><span class="pred-pct" style="color:var(--green-light);">${Math.round(probs.home)}%</span> Local</span>
-            <span><span class="pred-pct" style="color:var(--fg-muted);">${Math.round(probs.draw)}%</span> Empate</span>
-            <span><span class="pred-pct" style="color:var(--red);">${Math.round(probs.away)}%</span> Visitante</span>
-          </div>
-          ${hasDetail ? `<div class="pred-detail">
-            ${goals.home !== null ? `<div class="detail-grid">
-              <div class="detail-item"><div class="detail-val" style="color:var(--green-light);">${goals.home.toFixed(1)}</div><div class="detail-label">Goles Local</div></div>
-              <div class="detail-item"><div class="detail-val">${goals.away !== null ? goals.away.toFixed(1) : '—'}</div><div class="detail-label">Goles Visitante</div></div>
-              <div class="detail-item"><div class="detail-val">${goals.home !== null && goals.away !== null ? (goals.home + goals.away).toFixed(1) : '—'}</div><div class="detail-label">Total Esperado</div></div>
-            </div>` : ''}
-            ${hasNews ? `<div class="news-block">
-              ${p.home_news ? `<div class="news-label"><i class="fa-solid fa-newspaper"></i> Noticias ${home.es}</div><div class="news-text">${escapeHtml(p.home_news)}</div>` : ''}
-              ${p.away_news ? `<div class="news-label" style="margin-top:.6rem;"><i class="fa-solid fa-newspaper"></i> Noticias ${away.es}</div><div class="news-text">${escapeHtml(p.away_news)}</div>` : ''}
-              ${p.match_news ? `<div class="news-label" style="margin-top:.6rem;"><i class="fa-solid fa-microphone"></i> Previa del partido</div><div class="news-text">${escapeHtml(p.match_news)}</div>` : ''}
-            </div>` : ''}
-            ${hasHistory ? `<div style="margin-top:1rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-              ${rh.length > 0 ? `<div><div class="news-label">Reciente ${home.es}</div>${rh.map(m => renderHistoryItem(m)).join('')}</div>` : ''}
-              ${ra.length > 0 ? `<div><div class="news-label">Reciente ${away.es}</div>${ra.map(m => renderHistoryItem(m)).join('')}</div>` : ''}
-            </div>` : ''}
-          </div>` : ''}
-        </div>`;
-      }).join('');
-    }
-
-    function renderHistoryItem(m) {
-      if (!m || typeof m !== 'object') return '';
-      const result = m.result || 'draw';
-      const cls = result === 'win' ? 'history-win' : result === 'loss' ? 'history-loss' : 'history-draw';
-      const lbl = result === 'win' ? 'V' : result === 'loss' ? 'D' : 'E';
-      const opp = m.opponent || '—';
-      const gf = m.goals_for ?? m.goals_for ?? '?';
-      const ga = m.goals_against ?? m.goals_against ?? '?';
-      return `<div class="history-item"><span class="history-result ${cls}">${lbl}</span><span>${opp} ${gf}-${ga}</span></div>`;
-    }
-
-    // =============================================================
-    // SIMULACION MONTE CARLO
-    // =============================================================
-    async function runSim() {
-      const btn = document.getElementById('simBtn');
-      const status = document.getElementById('simStatus');
-      const count = Math.max(100, Math.min(100000, parseInt(document.getElementById('simCount').value) || 5000));
-      state.loading.simulation = true;
-      btn.disabled = true;
-      status.textContent = 'Ejecutando...';
-      document.getElementById('champList').innerHTML = '<div class="loading-spinner"></div>';
-
-      const data = await apiGet('/api/v1/simulation/run', { num_simulations: count });
-      state.loading.simulation = false;
-      btn.disabled = false;
-
-      if (!data || !data.probabilities) {
-        status.textContent = 'Error al simular';
-        document.getElementById('champList').innerHTML = emptyState('fa-dice', 'No se pudo obtener la simulacion.', true);
-        return;
-      }
-
-      state.simulation = data;
-      status.textContent = `${data.num_simulations.toLocaleString()} simulaciones completadas`;
-      renderChampRanking(data.probabilities.champion);
-      renderGroupTabs(data.probabilities.group_winners);
-      renderGroupTable(state.selectedGroup, data);
-      renderLastSim(data.last_simulation);
-      toast(`Simulacion completada: ${data.num_simulations.toLocaleString()} escenarios`, 'ok');
-    }
-
-    function renderChampRanking(champProbs) {
-      if (!champProbs || typeof champProbs !== 'object') return;
-      const sorted = Object.entries(champProbs).sort((a, b) => b[1] - a[1]).slice(0, 12);
-      if (sorted.length === 0) return;
-      const max = sorted[0][1] || 1;
-      document.getElementById('champList').innerHTML = sorted.map(([name, prob], i) => {
-        const t = tm(name);
-        const pct = (prob * 100).toFixed(1);
-        const w = (prob / max * 100).toFixed(1);
-        return `<div class="champ-row">
-          <span class="champ-pos" style="color:${i<3?'var(--gold)':'var(--fg-muted)'}">${i+1}</span>
-          <span class="champ-flag">${t.f}</span>
-          <span class="champ-name">${t.es}</span>
-          <div class="champ-bar-wrap"><div class="champ-bar"><div class="champ-bar-fill" style="width:${w}%"></div></div></div>
-          <span class="champ-pct" style="color:${i<3?'var(--gold)':'var(--fg-dim)'}">${pct}%</span>
-        </div>`;
-      }).join('');
-    }
-
-    function renderGroupTabs(gw) {
-      if (!gw || typeof gw !== 'object') return;
-      document.getElementById('groupTabs').innerHTML = Object.keys(gw).map(l =>
-        `<button class="group-tab ${l===state.selectedGroup?'active':''}" onclick="selectGroup('${l}',this)">${l}</button>`
-      ).join('');
-    }
-
-    function selectGroup(letter, btn) {
-      state.selectedGroup = letter;
-      document.querySelectorAll('.group-tab').forEach(b => b.classList.remove('active'));
-      if (btn) btn.classList.add('active');
-      if (state.simulation) renderGroupTable(letter, state.simulation);
-    }
-
-    function renderGroupTable(letter, simData) {
-      const wrap = document.getElementById('groupTableWrap');
-      const standings = simData?.last_simulation?.group_stage?.standings?.[letter];
-      if (!standings || !Array.isArray(standings) || standings.length === 0) {
-        wrap.innerHTML = emptyState('fa-layer-group', 'Sin datos para este grupo', false);
-        return;
-      }
-      const gw = simData.probabilities?.group_winners?.[letter] || {};
-      const gr = simData.probabilities?.group_runners_up?.[letter] || {};
-
-      wrap.innerHTML = `<table class="group-table"><thead><tr>
-        <th class="num">#</th><th>Equipo</th><th class="num">PJ</th><th class="num">PG</th><th class="num">PE</th><th class="num">PP</th><th class="num">GF</th><th class="num">GC</th><th class="num">DG</th><th class="num">Pts</th>
-      </tr></thead><tbody>${standings.map((r, i) => {
-        const t = tm(r.team);
-        const matches = r.matches || [];
-        const played = matches.length;
-        const wins = matches.filter(m => m.result === 'win').length;
-        const draws = matches.filter(m => m.result === 'draw').length;
-        const losses = matches.filter(m => m.result === 'loss').length;
-        const qual = i < 2;
-        return `<tr class="${qual?'qualified':'not-qualified'}">
-          <td class="num">${i+1}</td>
-          <td><div class="team-cell"><span>${t.f}</span><span>${t.es}${qual?' <span style="font-size:.6rem;color:var(--green-light);margin-left:.3rem;">CLAS</span>':''}</span></div></td>
-          <td class="num">${played}</td><td class="num">${wins}</td><td class="num">${draws}</td><td class="num">${losses}</td>
-          <td class="num">${r.gf ?? 0}</td><td class="num">${r.ga ?? 0}</td><td class="num">${(r.gd ?? 0) > 0 ? '+' : ''}${r.gd ?? 0}</td>
-          <td class="num" style="font-weight:700;">${r.points ?? 0}</td>
-        </tr>`;
-      }).join('')}</tbody></table>
-      <div style="margin-top:.75rem;font-size:.7rem;color:var(--fg-muted);">
-        Probabilidades (${(simData.num_simulations||0).toLocaleString()} sims):
-        ${Object.entries(gw).map(([team,prob])=>`<span style="margin-right:.6rem;">${tm(team).f} ${tm(team).es} 1°: <b style="color:var(--gold);">${(prob*100).toFixed(1)}%</b></span>`).join('')}
+  }
+  // Panel 2: Cuotas
+  if(odds.available&&odds.consensus&&odds.consensus.num_bookmakers){
+    const c=odds.consensus;const bk=odds.top_bookmakers||[];
+    const modelProbs=mp.probabilities||{};
+    const oddsHomeProb=c.home_odds?1/c.home_odds:0;const oddsDrawProb=c.draw_odds?1/c.draw_odds:0;const oddsAwayProb=c.away_odds?1/c.away_odds:0;
+    const diffHome=((modelProbs.home_win||0)-oddsHomeProb)*100;const diffAbs=Math.abs(diffHome);
+    html+=`<div class="d-panel"><div class="d-title"><i class="fa-solid fa-coins"></i> Cuotas — ${c.num_bookmakers} casas de apuestas</div>
+      <div class="d-grid d-grid-3" style="margin-bottom:.75rem">
+        <div class="d-item"><div class="d-val odds-val" style="color:var(--green-light)">${c.home_odds||'—'}</div><div class="d-label">Local</div></div>
+        <div class="d-item"><div class="d-val odds-val">${c.draw_odds||'—'}</div><div class="d-label">Empate</div></div>
+        <div class="d-item"><div class="d-val odds-val" style="color:var(--red)">${c.away_odds||'—'}</div><div class="d-label">Visitante</div></div>
       </div>`;
+    if(bk.length){
+      html+=`<table class="odds-table"><thead><tr><th>Casa</th><th>Local</th><th>Empate</th><th>Visitante</th></tr></thead><tbody>${bk.map(b=>`<tr><td>${esc(b.name)}</td><td class="odds-val" style="color:var(--green-light)">${b.home_odds}</td><td class="odds-val">${b.draw_odds}</td><td class="odds-val" style="color:var(--red)">${b.away_odds}</td></tr>`).join('')}</tbody></table>`;
     }
-
-    function renderLastSim(lastSim) {
-      const card = document.getElementById('lastSimCard');
-      const content = document.getElementById('lastSimContent');
-      if (!lastSim) { card.style.display = 'none'; return; }
-      card.style.display = 'block';
-      const champion = lastSim.knockout?.champion;
-      const ct = tm(champion);
-      const finalMatch = lastSim.knockout?.rounds?.final;
-
-      let html = '';
-      const rounds = lastSim.knockout?.rounds || {};
-      const names = { round_of_32:'32vos de Final', round_of_16:'Octavos', quarter_finals:'Cuartos', semi_finals:'Semifinales' };
-
-      for (const [key, name] of Object.entries(names)) {
-        const matches = rounds[key];
-        if (!matches || !Array.isArray(matches) || matches.length === 0) continue;
-        html += `<div style="margin-bottom:1rem;"><div class="news-label">${name}</div>`;
-        matches.forEach(m => {
-          const a = tm(m.team_a), b = tm(m.team_b);
-          const w = m.winner;
-          html += `<div class="history-item">
-            <span>${a.f} ${a.es}</span>
-            <span class="pred-pct" style="font-size:.8rem;">${m.goals_a ?? '?'}-${m.goals_b ?? '?'}</span>
-            <span>${b.f} ${b.es}</span>
-            ${w ? `<span class="history-result history-win" style="margin-left:auto;">${tm(w).f}</span>` : ''}
-          </div>`;
-        });
-        html += '</div>';
-      }
-
-      if (finalMatch) {
-        const a = tm(finalMatch.team_a), b = tm(finalMatch.team_b);
-        html += `<div><div class="news-label" style="color:var(--gold);">Final</div>
-          <div class="history-item" style="font-size:.95rem;padding:.6rem 0;">
-            <span>${a.f} <b>${a.es}</b></span>
-            <span class="pred-pct" style="font-size:1.1rem;">${finalMatch.goals_a ?? '?'}-${finalMatch.goals_b ?? '?'}</span>
-            <span><b>${b.es}</b> ${b.f}</span>
-          </div></div>`;
-      }
-
-      content.innerHTML = `
-        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding:1rem;background:var(--gold-glow);border:1px solid var(--gold-border);border-radius:8px;">
-          <span style="font-size:2.5rem;">${ct.f}</span>
-          <div><div class="font-display font-700 text-xl">${ct.es}</div><div style="font-size:.8rem;color:var(--gold);">Campeon en esta simulacion</div></div>
-        </div>
-        <div style="max-height:400px;overflow-y:auto;">${html || '<div class="empty-text">Sin datos de knockout</div>'}</div>`;
+    if(diffAbs>10){
+      html+=`<div class="discrepancy"><i class="fa-solid fa-triangle-exclamation" style="margin-top:.1rem;flex-shrink:0;"></i><span>El modelo da <b>${(modelProbs.home_win||0)*100}%</b> al local pero las cuotas implican <b>${(oddsHomeProb*100).toFixed(1)}%</b>. Diferencia de <b>${diffHome>0?'+':''}${diffHome.toFixed(1)} puntos</b>.</span></div>`;
     }
+    html+=`</div>`;
+  }
+  // Panel 3: Sentimiento
+  if(sent.home_score!=null||sent.away_score!=null){
+    html+=`<div class="d-panel"><div class="d-title"><i class="fa-solid fa-heart-pulse"></i> Sentimiento de Noticias</div>`;
+    if(sent.home_score!=null){const s=sent.home_score;const pctPos=(s+1)/2*100;const color=s>0.2?'var(--green-light)':s<-0.2?'var(--red)':'var(--fg-muted)';html+=`<div class="sent-row"><span class="sent-label">${esc(p.home_team)}</span><div class="sent-track"><div class="sent-center"></div><div class="sent-fill" style="left:${Math.min(pctPos,50)}%;width:${Math.abs(pctPos-50)}%;background:${color};"></div></div><span class="sent-score" style="color:${color}">${s>0?'+':''}${s.toFixed(1)}</span></div>${sent.home_reason?`<div class="sent-reason">${esc(sent.home_reason)}</div>`:''}`}
+    if(sent.away_score!=null){const s=sent.away_score;const pctPos=(s+1)/2*100;const color=s>0.2?'var(--green-light)':s<-0.2?'var(--red)':'var(--fg-muted)';html+=`<div class="sent-row" style="margin-top:.5rem"><span class="sent-label">${esc(p.away_team)}</span><div class="sent-track"><div class="sent-center"></div><div class="sent-fill" style="left:${Math.min(pctPos,50)}%;width:${Math.abs(pctPos-50)}%;background:${color};"></div></div><span class="sent-score" style="color:${color}">${s>0?'+':''}${s.toFixed(1)}</span></div>${sent.away_reason?`<div class="sent-reason">${esc(sent.away_reason)}</div>`:''}`}
+    html+=`</div>`;
+  }
+  // Panel 4: Forma reciente
+  const rh=p.recent_home_matches||[];const ra=p.recent_away_matches||[];
+  if(rh.length||ra.length){
+    html+=`<div class="d-panel"><div class="d-title"><i class="fa-solid fa-list-ol"></i> Forma Reciente</div><div class="d-grid d-grid-2">`;
+    if(rh.length){html+=`<div><div style="font-size:.7rem;color:var(--fg-muted);margin-bottom:.4rem;">${esc(p.home_team)}</div>${rh.map(m=>{const r=matchResult(m);return`<div class="hist-item"><span class="hist-result ${resultClass(r)}">${resultLabel(r)}</span><span style="flex:1">${esc(m.opponent)}</span><span style="font-family:'Oswald';font-weight:600;font-size:.8rem;">${m.goals_for}-${m.goals_against}</span><span style="font-size:.65rem;color:var(--fg-muted);margin-left:.3rem;">${m.date?.substring(5)||''}</span></div>`}).join('')}</div>`}
+    if(ra.length){html+=`<div><div style="font-size:.7rem;color:var(--fg-muted);margin-bottom:.4rem;">${esc(p.away_team)}</div>${ra.map(m=>{const r=matchResult(m);return`<div class="hist-item"><span class="hist-result ${resultClass(r)}">${resultLabel(r)}</span><span style="flex:1">${esc(m.opponent)}</span><span style="font-family:'Oswald';font-weight:600;font-size:.8rem;">${m.goals_for}-${m.goals_against}</span><span style="font-size:.65rem;color:var(--fg-muted);margin-left:.3rem;">${m.date?.substring(5)||''}</span></div>`}).join('')}</div>`}
+    html+=`</div></div>`;
+  }
+  // Panel 5: Análisis
+  if(p.analysis){html+=`<div class="d-panel"><div class="d-title"><i class="fa-solid fa-microphone-lines"></i> Analisis IA</div><div class="analysis-text">${esc(p.analysis)}</div></div>`}
+  // Footer
+  html+=`<div class="pred-footer" style="padding-top:.75rem"><span><i class="fa-solid fa-code-branch"></i> v${esc(p.model_version||'—')}</span><span><i class="fa-regular fa-clock"></i> ${p.generated_at?p.generated_at.replace('T',' ').substring(0,16):'—'}</span></div>`;
+  return html;
+}
 
-    // =============================================================
-    // PARTIDOS PROXIMOS
-    // =============================================================
-    async function loadMatches() {
-      state.loading.matches = true;
-      const el = document.getElementById('matchList');
-      el.innerHTML = '<div class="loading-spinner"></div>';
+// ===== SIMULACION =====
+async function runSim(){
+  const btn=document.getElementById('simBtn'),status=document.getElementById('simStatus');
+  const count=Math.max(100,Math.min(100000,parseInt(document.getElementById('simCount').value)||1000));
+  state.loading.simulation=true;btn.disabled=true;status.textContent='Despertando servidor...';
+  document.getElementById('champList').innerHTML=loadingHTML(`Ejecutando ${count.toLocaleString()} simulaciones...`,'Primera vez puede tardar hasta 2 minutos');
+  const data=await apiGet('/api/v1/simulation/run',{num_simulations:count});
+  state.loading.simulation=false;btn.disabled=false;
+  if(!data||!data.probabilities){status.textContent='Error';document.getElementById('champList').innerHTML=emptyHTML('fa-dice','La simulacion tardó demasiado. Intenta con menos simulaciones.',true);return}
+  state.simulation=data;status.textContent=`${data.num_simulations.toLocaleString()} simulaciones completadas`;
+  renderChamp(data.probabilities.champion);renderGroupTabs(data.probabilities.group_winners);renderGroupTable(state.selectedGroup,data);renderLastSim(data.last_simulation);
+  toast(`Simulacion: ${data.num_simulations.toLocaleString()} escenarios`,'ok');
+}
+function renderChamp(cp){if(!cp)return;const s=Object.entries(cp).sort((a,b)=>b[1]-a[1]).slice(0,12);if(!s.length)return;const mx=s[0][1]||1;document.getElementById('champList').innerHTML=s.map(([n,p],i)=>{const t=tm(n);return`<div class="champ-row"><span class="champ-pos" style="color:${i<3?'var(--gold)':'var(--fg-muted)'}">${i+1}</span><span class="champ-flag">${t.f}</span><span class="champ-name">${t.es}</span><div class="champ-bar-wrap"><div class="champ-bar"><div class="champ-bar-fill" style="width:${(p/mx*100).toFixed(1)}%"></div></div></div><span class="champ-pct" style="color:${i<3?'var(--gold)':'var(--fg-dim)'}">${(p*100).toFixed(1)}%</span></div>`}).join('')}
+function renderGroupTabs(gw){if(!gw)return;document.getElementById('groupTabs').innerHTML=Object.keys(gw).map(l=>`<button class="group-tab ${l===state.selectedGroup?'active':''}" onclick="selectGroup('${l}',this)">${l}</button>`).join('')}
+function selectGroup(l,btn){state.selectedGroup=l;document.querySelectorAll('.group-tab').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');if(state.simulation)renderGroupTable(l,state.simulation)}
+function renderGroupTable(letter,sd){const w=document.getElementById('groupTableWrap'),st=sd?.last_simulation?.group_stage?.standings?.[letter];if(!st||!st.length){w.innerHTML=emptyHTML('fa-layer-group','Sin datos',false);return}const gw=sd.probabilities?.group_winners?.[letter]||{};w.innerHTML=`<table class="group-table"><thead><tr><th class="num">#</th><th>Equipo</th><th class="num">PJ</th><th class="num">PG</th><th class="num">PE</th><th class="num">PP</th><th class="num">GF</th><th class="num">GC</th><th class="num">DG</th><th class="num">Pts</th></tr></thead><tbody>${st.map((r,i)=>{const t=tm(r.team),m=r.matches||[],pl=m.length,wn=m.filter(x=>x.result==='win').length,dr=m.filter(x=>x.result==='draw').length,ls=m.filter(x=>x.result==='loss').length,q=i<2;return`<tr class="${q?'qualified':'not-qualified'}"><td class="num">${i+1}</td><td><div class="team-cell"><span>${t.f}</span><span>${t.es}${q?' <span style="font-size:.6rem;color:var(--green-light);margin-left:.3rem;">CLAS</span>':''}</span></div></td><td class="num">${pl}</td><td class="num">${wn}</td><td class="num">${dr}</td><td class="num">${ls}</td><td class="num">${r.gf??0}</td><td class="num">${r.ga??0}</td><td class="num">${(r.gd??0)>0?'+':''}${r.gd??0}</td><td class="num" style="font-weight:700;">${r.points??0}</td></tr>`}).join('')}</tbody></table><div style="margin-top:.75rem;font-size:.7rem;color:var(--fg-muted);">Probabilidades (${(sd.num_simulations||0).toLocaleString()} sims): ${Object.entries(gw).map(([t,p])=>`<span style="margin-right:.6rem;">${tm(t).f} ${tm(t).es} 1°: <b style="color:var(--gold);">${(p*100).toFixed(1)}%</b></span>`).join('')}</div>`}
+function renderLastSim(ls){const c=document.getElementById('lastSimCard'),ct=document.getElementById('lastSimContent');if(!ls){c.style.display='none';return}c.style.display='block';const ch=tm(ls.knockout?.champion),fm=ls.knockout?.rounds?.final;let h='';const rd=ls.knockout?.rounds||{};const nm={round_of_32:'32vos',round_of_16:'Octavos',quarter_finals:'Cuartos',semi_finals:'Semifinales'};for(const[k,n]of Object.entries(nm)){const ms=rd[k];if(!ms||!ms.length)continue;h+=`<div style="margin-bottom:1rem"><div class="d-title">${n}</div>${ms.map(m=>{const a=tm(m.team_a),b=tm(m.team_b);return`<div class="hist-item"><span>${a.f} ${a.es}</span><span class="pred-pct" style="font-size:.8rem;">${m.goals_a??'?'}-${m.goals_b??'?'}</span><span>${b.f} ${b.es}</span>${m.winner?`<span class="hist-result hist-win" style="margin-left:auto;">${tm(m.winner).f}</span>`:''}</div>`}).join('')}</div>`}if(fm){const a=tm(fm.team_a),b=tm(fm.team_b);h+=`<div><div class="d-title" style="color:var(--gold);">Final</div><div class="hist-item" style="font-size:.95rem;padding:.6rem 0"><span>${a.f} <b>${a.es}</b></span><span class="pred-pct" style="font-size:1.1rem;">${fm.goals_a??'?'}-${fm.goals_b??'?'}</span><span><b>${b.es}</b> ${b.f}</span></div></div>`}ct.innerHTML=`<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding:1rem;background:var(--gold-glow);border:1px solid var(--gold-border);border-radius:8px"><span style="font-size:2.5rem;">${ch.f}</span><div><div class="font-display font-700 text-xl">${ch.es}</div><div style="font-size:.8rem;color:var(--gold);">Campeon en esta simulacion</div></div></div><div style="max-height:400px;overflow-y:auto">${h||'<div class="empty-text">Sin datos</div>'}</div>`}
 
-      const data = await apiGet('/api/v1/matches/upcoming');
-      state.loading.matches = false;
+// ===== PARTIDOS =====
+async function loadMatches(){
+  state.loading.matches=true;const el=document.getElementById('matchList');
+  el.innerHTML=loadingHTML('Obteniendo partidos...','Primera visita puede tardar hasta 2 minutos');
+  const data=await apiGet('/api/v1/matches/upcoming');state.loading.matches=false;
+  if(!data){el.innerHTML=emptyHTML('fa-plug-circle-xmark','No se pudo conectar.',true);return}
+  const matches=Array.isArray(data)?data:(data.matches||[]);const dateStr=data.date||'—';const count=data.count||matches.length;
+  if(!matches.length){document.getElementById('matchDateDesc').textContent=data.message||'Sin partidos';el.innerHTML=emptyHTML('fa-calendar-xmark',data.message||'Sin partidos proximos.',true);return}
+  state.upcoming={date:dateStr,matches,count};document.getElementById('matchDateDesc').textContent=`Fecha: ${dateStr} — ${count} partido${count!==1?'s':''}`;
+  renderMatches(matches);
+}
+function renderMatches(matches){document.getElementById('matchList').innerHTML=matches.map(m=>{
+  const time=m.datetimeMX?m.datetimeMX.split('T')[1]?.substring(0,5):'';const news=m.match_news||m.home_news||m.away_news;
+  const flagH=m.home_flag?`<img src="${m.home_flag}" class="pred-flag-img" alt="" onerror="this.outerHTML='${esc(tm(m.home_team).f)}'">`:`<span class="pred-flag">${tm(m.home_team).f}</span>`;
+  const flagA=m.away_flag?`<img src="${m.away_flag}" class="pred-flag-img" alt="" onerror="this.outerHTML='${esc(tm(m.away_team).f)}'">`:`<span class="pred-flag">${tm(m.away_team).f}</span>`;
+  return`<div class="card card-p match-card"><div class="match-row"><div class="pred-team">${flagH}<span class="pred-name">${esc(m.home_team)}</span></div><span class="pred-vs">VS</span><div class="pred-team right"><span class="pred-name">${esc(m.away_team)}</span>${flagA}</div></div><div class="date-tag"><i class="fa-regular fa-calendar" style="margin-right:.3rem;"></i>${m.date||'—'}${time?` — ${time} CDMX`:''}${m.venue?`<span style="margin-left:.5rem;"><i class="fa-solid fa-location-dot" style="margin-right:.2rem;"></i>${esc(m.venue)}, ${esc(m.city||'')}</span>`:''}${m.capacity?`<span style="margin-left:.5rem;"><i class="fa-solid fa-users" style="margin-right:.2rem;"></i>${m.capacity.toLocaleString()}</span>`:''}</div>${news?`<div class="news-snippet"><i class="fa-solid fa-newspaper" style="color:var(--gold);margin-right:.3rem;"></i>${esc(news)}</div>`:''}</div>`}).join('')}
 
-      if (!data) {
-        el.innerHTML = emptyState('fa-plug-circle-xmark', 'No se pudo conectar con la API.', true);
-        return;
-      }
+// ===== PARTICLES + GRASS =====
+function createParticles(){const c=document.getElementById('particles');for(let i=0;i<18;i++){const p=document.createElement('div');p.className='particle';const g=Math.random()>.5;p.style.cssText=`left:${Math.random()*100}%;width:${1.5+Math.random()*2}px;height:${1.5+Math.random()*2}px;background:${g?'var(--gold)':'var(--green-light)'};animation-duration:${10+Math.random()*14}s;animation-delay:${Math.random()*12}s;box-shadow:0 0 ${3+Math.random()*4}px ${g?'rgba(212,168,67,.4)':'rgba(76,175,80,.4)'};`;c.appendChild(p)}}
+function createGrassStripes(){const c=document.getElementById('grassStripes');for(let i=0;i<5;i++){const s=document.createElement('div');s.className='grass-stripe';s.style.cssText=`animation-duration:${10+Math.random()*8}s;animation-delay:${i*3.5+Math.random()*2}s;`;c.appendChild(s)}}
 
-      // La API ahora devuelve { date, matches, count } — NO un array directo
-      const matches = Array.isArray(data) ? data : (data.matches || []);
-      const dateStr = data.date || 'Fecha no disponible';
-      const count = data.count || matches.length;
+// ===== SCROLL REVEAL =====
+function initReveals(){const o=new IntersectionObserver(e=>{e.forEach(en=>{if(en.isIntersecting){en.target.classList.add('visible');o.unobserve(en.target)}})},{threshold:.1});document.querySelectorAll('.reveal:not(.visible)').forEach(el=>o.observe(el))}
 
-      if (matches.length === 0) {
-        const msg = data.message || 'No hay partidos proximos disponibles.';
-        document.getElementById('matchDateDesc').textContent = msg;
-        el.innerHTML = emptyState('fa-calendar-xmark', msg, true);
-        return;
-      }
-
-      state.upcoming = { date: dateStr, matches, count };
-      document.getElementById('matchDateDesc').textContent = `Fecha: ${dateStr} — ${count} partido${count !== 1 ? 's' : ''}`;
-      renderMatches(matches);
-    }
-
-    function renderMatches(matches) {
-      document.getElementById('matchList').innerHTML = matches.map(m => {
-        const home = tm(m.home_team);
-        const away = tm(m.away_team);
-        const date = m.date || m.datetime?.split('T')[0] || '—';
-        const time = m.datetime ? m.datetime.split('T')[1]?.substring(0, 5) : '';
-        const news = m.match_news || m.home_news || m.away_news;
-        const stadium = m.stadium || m.venue || '';
-
-        return `<div class="card card-p match-card">
-          <div class="match-row">
-            <div class="pred-team"><span class="pred-flag">${home.f}</span><span class="pred-name">${home.es}</span></div>
-            <span class="pred-vs">VS</span>
-            <div class="pred-team right"><span class="pred-name">${away.es}</span><span class="pred-flag">${away.f}</span></div>
-          </div>
-          <div class="date-tag">
-            <i class="fa-regular fa-calendar" style="margin-right:.3rem;"></i>${date}${time ? ` — ${time}` : ''}
-            ${stadium ? `<span style="margin-left:.5rem;"><i class="fa-solid fa-location-dot" style="margin-right:.2rem;"></i>${escapeHtml(stadium)}</span>` : ''}
-          </div>
-          ${news ? `<div class="news-snippet"><i class="fa-solid fa-newspaper" style="color:var(--gold);margin-right:.3rem;"></i>${escapeHtml(news)}</div>` : ''}
-        </div>`;
-      }).join('');
-    }
-
-    // =============================================================
-    // UTILIDADES
-    // =============================================================
-    function escapeHtml(str) {
-      if (!str) return '';
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
-    }
-
-    function emptyState(icon, msg, showRetry) {
-      return `<div class="empty-state" style="grid-column:1/-1;">
-        <div class="empty-icon"><i class="fa-solid ${icon}"></i></div>
-        <div class="empty-text">${escapeHtml(msg)}${showRetry ? '<br><button class="btn btn-ghost btn-sm mt-4" onclick="location.reload()"><i class="fa-solid fa-rotate"></i> Reintentar</button>' : ''}</div>
-      </div>`;
-    }
-
-    // =============================================================
-    // PARTÍCULAS + FRANJAS
-    // =============================================================
-    function createParticles() {
-      const c = document.getElementById('particles');
-      for (let i = 0; i < 18; i++) {
-        const p = document.createElement('div');
-        p.className = 'particle';
-        const isGold = Math.random() > 0.5;
-        p.style.cssText = `left:${Math.random()*100}%;width:${1.5+Math.random()*2}px;height:${1.5+Math.random()*2}px;background:${isGold?'var(--gold)':'var(--green-light)'};animation-duration:${10+Math.random()*14}s;animation-delay:${Math.random()*12}s;box-shadow:0 0 ${3+Math.random()*4}px ${isGold?'rgba(212,168,67,.4)':'rgba(76,175,80,.4)'};`;
-        c.appendChild(p);
-      }
-    }
-
-    function createGrassStripes() {
-      const c = document.getElementById('grassStripes');
-      for (let i = 0; i < 5; i++) {
-        const s = document.createElement('div');
-        s.className = 'grass-stripe';
-        s.style.cssText = `animation-duration:${10+Math.random()*8}s;animation-delay:${i*3.5+Math.random()*2}s;`;
-        c.appendChild(s);
-      }
-    }
-
-    // =============================================================
-    // SCROLL REVEAL
-    // =============================================================
-    function initReveals() {
-      const obs = new IntersectionObserver(entries => {
-        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
-      }, { threshold: 0.1 });
-      document.querySelectorAll('.reveal:not(.visible)').forEach(el => obs.observe(el));
-    }
-
-    // =============================================================
-    // INIT — verificar API + cargar stats del hero
-    // =============================================================
-    document.addEventListener('DOMContentLoaded', () => {
-      createParticles();
-      createGrassStripes();
-      initReveals();
-
-      // Verificar que la API esté online
-      (async () => {
-        const root = await apiGet('/');
-        const statusEl = document.getElementById('apiStatusHome');
-
-        if (root && root.status === 'online') {
-          apiOnline = true;
-          statusEl.innerHTML = '<span class="api-dot ok"></span> API conectada';
-        } else {
-          apiOnline = false;
-          statusEl.innerHTML = '<span class="api-dot err"></span> API fuera de linea — las funciones necesitan la API activa';
-          toast('La API no responde. Render puede estar en cold start, espera 30s y recarga.', 'warn');
-        }
-
-        if (apiOnline) {
-          const [t, s] = await Promise.all([apiGet('/api/v1/teams'), apiGet('/api/v1/stadiums')]);
-          if (t?.teams) document.getElementById('heroTeams').textContent = t.count || t.teams.length;
-          if (s?.stadiums) document.getElementById('heroStadiums').textContent = s.count || s.stadiums.length;
-        } else {
-          document.getElementById('heroTeams').textContent = '48';
-          document.getElementById('heroMatches').textContent = '104';
-          document.getElementById('heroStadiums').textContent = '16';
-        }
-      })();
-    });
-  </script>
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded',()=>{createParticles();createGrassStripes();initReveals();
+  (async()=>{
+    const s=document.getElementById('apiStatusHome');s.innerHTML='<span class="api-dot loading"></span> Despertando servidor...';
+    const ok=await warmupAPI();
+    if(ok){s.innerHTML='<span class="api-dot ok"></span> API conectada';const[t,st]=await Promise.all([apiGet('/api/v1/teams'),apiGet('/api/v1/stadiums')]);if(t?.teams)document.getElementById('heroTeams').textContent=t.count||t.teams.length;if(st?.stadiums)document.getElementById('heroStadiums').textContent=st.count||st.stadiums.length}
+    else{s.innerHTML='<span class="api-dot err"></span> API no responde — recarga en 30s';toast('Servidor despertando. Recarga en 30-60 segundos.','warn')}
+    if(document.getElementById('heroTeams').textContent==='—')document.getElementById('heroTeams').textContent='48';
+    if(document.getElementById('heroMatches').textContent==='—')document.getElementById('heroMatches').textContent='104';
+    if(document.getElementById('heroStadiums').textContent==='—')document.getElementById('heroStadiums').textContent='16';
+  })();
+});
+</script>
 </body>
 </html>

@@ -301,7 +301,7 @@ async def generate_groq_analysis(
             sentiment_home_reason=sent_home,
             sentiment_away_reason=sent_away,
             sentiment_home_score=sent_home_score,
-            sentiment_away_score=sent_away_score,   # <--- CORREGIDO: coma añadida
+            sentiment_away_score=sent_away_score,
             recent_home_text=recent_home_text,
             recent_away_text=recent_away_text
         )
@@ -461,7 +461,15 @@ async def update_upcoming_predictions():
     if not matches:
         return {"updated": 0}
 
-    # Obtener partidos finalizados para el historial
+    # ── PRE-CALENTAR CACHÉ DE ODDS (1 sola llamada API para TODOS los partidos) ──
+    try:
+        from app.services.odds_service import fetch_all_odds
+        await fetch_all_odds(force_refresh=False)
+        print("🔥 Caché de odds pre-calentado.")
+    except Exception as e:
+        print(f"⚠️ No se pudo pre-calentar caché de odds: {e}")
+
+    # ── Obtener partidos finalizados para historial ──
     all_matches = await fetch_all_matches()
     finished = [m for m in all_matches if m.get("status") == "finished" and m.get("home_score") is not None]
 

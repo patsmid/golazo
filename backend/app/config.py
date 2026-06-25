@@ -13,6 +13,7 @@ DB_PATH = os.path.join(BASE_DIR, "data", "worldcup.db")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY", "")
 ODDS_API_KEY = os.environ.get("ODDS_API_KEY", "")
+ODDS_PAPI_API_KEY = os.environ.get("ODDS_PAPI_API_KEY", "")
 
 # Redis (Upstash)
 REDIS_URL = os.getenv("UPSTASH_REDIS_URL")
