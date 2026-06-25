@@ -929,10 +929,86 @@ def get_prediction_from_odds(odds: Dict) -> Dict:
     }
 
 
-# =============================================================================
-# FUNCIÓN PÚBLICA PRINCIPAL: get_enriched_odds (INTERFACE SIN CAMBIOS)
-# =============================================================================
-
 async def get_enriched_odds(home_team: str, away_team: str) -> Dict:
-    """
-    Obtiene odds enriquecidas para un partido.
+    """Obtiene odds enriquecidas para un partido. Interface sin cambios."""
+    try:
+        odds_data = await fetch_odds_for_match(home_team, away_team)
+        if not odds_data:
+            return {
+                "top_bookmakers": [],
+                "consensus": {},
+                "prediction": {},
+                "score_prediction": {},
+                "available": False,
+                "error": "No se pudieron obtener odds",
+                "provider": None
+            }
+
+        bookmakers = odds_data.get("bookmakers", [])
+        home_name = odds_data.get("home_team", "")
+        away_name = odds_data.get("away_team", "")
+
+        top_bks = extract_top_bookmakers(bookmakers, home_name, away_name, limit=3)
+        consensus = calculate_consensus(bookmakers, home_name, away_name)
+        prediction = get_prediction_from_odds(consensus)
+        score_pred = estimate_score_from_odds(consensus)
+
+        return {
+            "top_bookmakers": top_bks,
+            "consensus": consensus,
+            "prediction": prediction,
+            "score_prediction": score_pred,
+            "available": bool(top_bks),
+            "provider": odds_data.get("_provider", "unknown")
+        }
+
+    except Exception as e:
+        print(f"❌ Error obteniendo odds para {home_team} vs {away_team}: {e}")
+        return {
+            "top_bookmakers": [],
+            "consensus": {},
+            "prediction": {},
+            "score_prediction": {},
+            "available": False,
+            "error": str(e)[:80],
+            "provider": None
+        }
+
+
+async def get_odds_status() -> Dict:
+    """Retorna el estado actual del servicio de odds."""
+    events = await fetch_all_odds()
+    meta = _cache_get(CACHE_KEY_ALL_ODDS_META)
+
+    age = 0
+    provider = "none"
+    count = 0
+    is_stale = False
+
+    if meta:
+        age = time.time() - meta.get("timestamp", 0)
+        provider = meta.get("provider", "unknown")
+        count = meta.get("count", 0)
+        is_stale = meta.get("_stale", False)
+
+    if events:
+        count = len(events)
+
+    unique_bks = set()
+    for evt in (events or []):
+        for bk in evt.get("bookmakers", []):
+            unique_bks.add(bk.get("key", ""))
+
+    return {
+        "provider": provider,
+        "events_count": count,
+        "unique_bookmakers": len(unique_bks),
+        "bookmakers": list(unique_bks)[:15],
+        "cache_age_seconds": round(age),
+        "cache_age_human": f"{int(age // 3600)}h {int((age % 3600) // 60)}m",
+        "is_stale": is_stale,
+        "cache_ttl_seconds": CACHE_TTL_ODDS,
+        "stale_ttl_seconds": STALE_TTL_ODDS,
+        "papi_configured": bool(ODDS_PAPI_API_KEY),
+        "toa_configured": bool(ODDS_API_KEY),
+    }
