@@ -915,7 +915,7 @@ def get_prediction_from_odds(odds: Dict) -> Dict:
         confidence = "Alta" if home_prob > 0.5 else "Media"
     elif away_prob > draw_prob:
         winner = "away"
-        confidence = "Alta" si away_prob > 0.5 else "Media"
+        confidence = "Alta" if away_prob > 0.5 else "Media"
     else:
         winner = "draw"
         confidence = "Media"
