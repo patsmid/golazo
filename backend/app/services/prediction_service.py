@@ -138,8 +138,14 @@ async def apply_sentiment(home: str, away: str, lambda_home: float, lambda_away:
             asyncio.to_thread(fetch_news_headlines, away)
         )
 
-        score_home, reason_home = analyze_sentiment(home, headlines_home)
-        score_away, reason_away = analyze_sentiment(away, headlines_away)
+        try:
+            score_home, reason_home = analyze_sentiment(home, headlines_home)
+        except Exception:
+            score_home, reason_home = 0, "No data"
+        try:
+            score_away, reason_away = analyze_sentiment(away, headlines_away)
+        except Exception:
+            score_away, reason_away = 0, "No data"
 
         lambda_home *= math.exp(SENTIMENT_BETA * score_home)
         lambda_away *= math.exp(SENTIMENT_BETA * score_away)
