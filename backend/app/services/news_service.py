@@ -199,3 +199,97 @@ def fetch_match_news_summary(home: str, away: str) -> str:
     except Exception as e:
         print(f"Error generando resumen del partido: {e}")
         return f"Partido entre {home} y {away} en el Mundial 2026."
+
+# ============================================================================
+# ANÁLISIS PROFUNDO CON MEJOR MODELO (bajo demanda)
+# ============================================================================
+
+DEEP_ANALYSIS_PROMPT = """Eres un analista deportivo de élite del Mundial 2026.
+
+Partido: {home} vs {away}
+Grupo: {group} | Fecha: {date} | Sede: {venue}
+
+Noticias {home}:
+{home_headlines}
+
+Noticias {away}:
+{away_headlines}
+
+Genera un análisis JSON con esta estructura EXACTA:
+{{
+    "home_summary": "Resumen de 1-2 frases sobre {home} (máx 130 chars)",
+    "away_summary": "Resumen de 1-2 frases sobre {away} (máx 130 chars)",
+    "match_preview": "Pronóstico breve del partido en 1-2 frases (máx 150 chars)",
+    "key_factors": ["Factor clave 1", "Factor clave 2", "Factor clave 3"],
+    "home_form": "Alta/Media/Baja",
+    "away_form": "Alta/Media/Baja",
+    "predicted_winner": "home/away/empate",
+    "confidence": "Alta/Media/Baja"
+}}
+
+Reglas estrictas:
+- Responde SOLO con el JSON, sin texto antes o después
+- Sin markdown, sin backticks
+- Usa comillas simples dentro de los textos si necesitas, NUNCA dobles
+- Máximo 3 key_factors, cada uno máximo 50 caracteres
+- home_form/away_form: basado en noticias recientes
+- predicted_winner: quien tiene más ventaja según las noticias
+- confidence: qué tan claro es el pronóstico
+"""
+
+def generate_match_analysis(home: str, away: str, home_headlines: list,
+                             away_headlines: list, match_data: dict = None) -> dict:
+    """Análisis profundo con llama-3.3-70b-versatile (mejor modelo Groq)."""
+    venue = match_data.get("venue", "Por determinar") if match_data else "Por determinar"
+    group = match_data.get("group", "") if match_data else ""
+    date = match_data.get("date", "") if match_data else ""
+
+    home_hl = "\n".join(f"- {h}" for h in home_headlines[:5]) if home_headlines else "Sin noticias"
+    away_hl = "\n".join(f"- {h}" for h in away_headlines[:5]) if away_headlines else "Sin noticias"
+
+    prompt = DEEP_ANALYSIS_PROMPT.format(
+        home=home, away=away, group=group, date=date, venue=venue,
+        home_headlines=home_hl, away_headlines=away_hl
+    )
+
+    try:
+        chat_completion = client.chat.completions.create(
+            messages=[{"role": "user", "content": prompt}],
+            model="llama-3.3-70b-versatile",
+            temperature=0.4,
+            max_tokens=400,
+            response_format={"type": "json_object"},
+        )
+        result = json.loads(_clean_json(chat_completion.choices[0].message.content))
+
+        # Validar y truncar campos
+        for field, max_len in [("home_summary", 130), ("away_summary", 130), ("match_preview", 150)]:
+            val = result.get(field, "")
+            if not val:
+                result[field] = ""
+            elif len(val) > max_len:
+                result[field] = val[:max_len - 3] + "..."
+
+        factors = result.get("key_factors", [])
+        result["key_factors"] = [f[:50] for f in factors[:3]]
+
+        for field in ["home_form", "away_form", "predicted_winner", "confidence"]:
+            if field not in result:
+                result[field] = "Media"
+
+        return result
+
+    except Exception as e:
+        print(f"Error análisis profundo {home} vs {away}: {e}")
+        hs = " ".join(home_headlines[:2])[:127] + "..." if home_headlines else "Sin noticias"
+        as_ = " ".join(away_headlines[:2])[:127] + "..." if away_headlines else "Sin noticias"
+        return {
+            "home_summary": hs,
+            "away_summary": as_,
+            "match_preview": f"Partido entre {home} y {away} en el Mundial 2026.",
+            "key_factors": [],
+            "home_form": "Media",
+            "away_form": "Media",
+            "predicted_winner": "empate",
+            "confidence": "Baja"
+        }
