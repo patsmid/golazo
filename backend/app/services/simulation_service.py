@@ -585,8 +585,10 @@ class WorldCupSimulator:
             knockout = self._simulate_knockout_stage(qualified)
 
             # Contar avances
-            for team in qualified:
-                round32_count[team] += 1
+            # ⚠️ `qualified` es una lista de DICTS (con clave "team"),
+            # mientras que las demás listas son de strings (nombres de equipos).
+            for team_entry in qualified:
+                round32_count[team_entry["team"]] += 1
             for team in knockout.get("round_of_16_teams", []):
                 round16_count[team] += 1
             for team in knockout.get("quarter_final_teams", []):
