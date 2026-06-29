@@ -250,7 +250,6 @@
     .wc-live-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1.5s infinite}
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
   </style>
-<base target="_blank">
 </head>
 <body>
   <div class="field-bg"><div class="field-lines"></div><div class="field-center-circle"></div><div class="field-center-line"></div></div>
@@ -381,7 +380,7 @@
 // CONFIG
 // ============================================================================
 const API='https://golazo-api-00y6.onrender.com';
-// WC26_API ya no se usa - todo pasa por tu API propia: /api/v1/worldcup/
+// WC26_API ya no se usa - todo pasa por tu API propia con datos enriquecidos
 const TIMEOUTS={'/':30000,'/api/v1/teams':45000,'/api/v1/stadiums':45000,'/api/v1/matches/upcoming':90000,'/api/v1/predictions/today':120000,'/api/v1/simulation/run':120000};
 
 let apiOnline=false,apiWarming=false,apiWarm=false;
@@ -447,10 +446,6 @@ const CACHE_TTLS={
   'wc26_games': 1*60*1000,
   'wc26_teams': 24*60*60*1000,
   'wc26_stadiums': 60*60*1000,
-  'wc26__get_groups': 2*60*1000,
-  'wc26__get_games': 1*60*1000,
-  'wc26__get_teams': 24*60*60*1000,
-  'wc26__get_stadiums': 60*60*1000,
 };
 
 function cacheGet(key){
@@ -584,9 +579,7 @@ async function apiGet(path,params={},retries=2){
 }
 
 async function wc26Get(path, cacheMinutes=5){
-  // Ahora usa tu API propia en vez de worldcup26.ir directamente
-  // path viene como '/get/groups', '/get/games', etc.
-  // Lo convertimos al endpoint propio: /api/v1/worldcup/groups, /api/v1/worldcup/games
+  // Ahora usa tu API propia con datos enriquecidos (español + CDMX)
   const cacheKey='wc26_'+path.replace(/\//g,'_');
   const cached=cacheGet(cacheKey);
   if(cached){
@@ -594,7 +587,7 @@ async function wc26Get(path, cacheMinutes=5){
     return cached;
   }
 
-  // Mapear path de worldcup26.ir a tu API propia
+  // Mapear path de worldcup26.ir a tu API propia enriquecida
   const pathMap = {
     '/get/groups': '/api/v1/worldcup/groups',
     '/get/games': '/api/v1/worldcup/games',
@@ -1189,11 +1182,13 @@ function renderWCGroups(){
       <table class="wc-table">
         <thead><tr><th style="text-align:left">Equipo</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DG</th><th>Pts</th></tr></thead>
         <tbody>${sortedTeams.map((t,i)=>{
-          const teamInfo=tmById(t.team_id);
+          // El backend ya devuelve name_es, flag, fifa_code enriquecidos
+          const nameEs = t.name_es || tmById(t.team_id).es;
+          const flag = t.flag || tmById(t.team_id).f;
           const isQualified=i<2;
           const isThird=i===2;
           return `<tr class="${isQualified?'qualified':isThird?'third':''}">
-            <td><div class="team-cell"><span style="font-size:1.1rem">${teamInfo.f}</span><span>${teamInfo.es}</span></div></td>
+            <td><div class="team-cell"><span style="font-size:1.1rem">${flag?`<img src="${esc(flag)}" style="width:24px;height:18px;border-radius:3px;object-fit:cover;" onerror="this.outerHTML='⚽'">`:'⚽'}</span><span>${esc(nameEs)}</span></div></td>
             <td>${t.mp}</td><td>${t.w}</td><td>${t.d}</td><td>${t.l}</td>
             <td>${t.gf}</td><td>${t.ga}</td><td>${parseInt(t.gd)>0?'+':''}${t.gd}</td>
             <td style="font-weight:700">${t.pts}</td>
@@ -1216,10 +1211,10 @@ function renderWCMatches(){
 
   const games=state.wc.games.games;
 
-  // CORREGIDO: Live = time_elapsed no es notstarted NI finished
-  const liveGames=games.filter(g=>g.time_elapsed!=='notstarted'&&g.time_elapsed!=='finished'&&g.time_elapsed!=='Finished');
-  const finishedGames=games.filter(g=>g.finished==='TRUE'||g.time_elapsed==='finished'||g.time_elapsed==='Finished');
-  const upcomingGames=games.filter(g=>g.finished==='FALSE'&&g.time_elapsed==='notstarted');
+  // El backend ya devuelve status enriquecido: "finished" | "live" | "upcoming"
+  const liveGames=games.filter(g=>g.status==='live');
+  const finishedGames=games.filter(g=>g.status==='finished');
+  const upcomingGames=games.filter(g=>g.status==='upcoming');
 
   let html='';
 
@@ -1230,11 +1225,11 @@ function renderWCMatches(){
     html+=`</div></div>`;
   }
 
-  // Upcoming games by date
+  // Upcoming games by date (usando date_iso del backend)
   if(upcomingGames.length){
     const byDate={};
     upcomingGames.forEach(g=>{
-      const date=g.local_date.split(' ')[0];
+      const date=g.date_iso||g.local_date.split(' ')[0];
       if(!byDate[date])byDate[date]=[];
       byDate[date].push(g);
     });
@@ -1270,97 +1265,61 @@ function renderWCMatches(){
 }
 
 function renderWCMatchCard(g,isLive=false,isFinished=false){
-  const homeId=g.home_team_id;
-  const awayId=g.away_team_id;
+  // El backend ya devuelve todo enriquecido: name_es, time_cdmx, status, flag, etc.
+  const homeName = g.home_team_name_es || g.home_team_label || 'TBD';
+  const awayName = g.away_team_name_es || g.away_team_label || 'TBD';
 
-  // FIX 1: Nombres en español via tmById()
-  const homeInfo=tmById(homeId);
-  const awayInfo=tmById(awayId);
+  // Flags del backend (ya no necesitamos tmById)
+  const homeFlag = g.home_flag || tmById(g.home_team_id).f;
+  const awayFlag = g.away_flag || tmById(g.away_team_id).f;
 
-  // Si el partido tiene label (ej: "Winner Match 86"), usarlo como fallback
-  const homeName=g.home_team_name_en&&g.home_team_name_en!=='null'&&g.home_team_id!=='0'
-    ? homeInfo.es  // Usar español del mapeo
-    : (g.home_team_label||homeInfo.es);
-  const awayName=g.away_team_name_en&&g.away_team_name_en!=='null'&&g.away_team_id!=='0'
-    ? awayInfo.es  // Usar español del mapeo
-    : (g.away_team_label||awayInfo.es);
+  // Fecha y hora CDMX del backend
+  const dateDisplay = g.date_iso || g.local_date.split(' ')[0];
+  const timeDisplay = g.time_cdmx || '';
 
-  // FIX 2: Hora CDMX
-  // Intentar obtener datetimeMX desde upcomingMap (tu API) por match_id
-  let timeDisplay='';
-  let dateDisplay='';
-
-  // Buscar en upcomingMap por ID del partido de worldcup26
-  const matchInOurApi=Object.values(state.upcomingMap).find(m=>{
-    // Cruzar por fecha + equipos (match_id puede diferir entre APIs)
-    return m.home_team===homeInfo.es&&m.away_team===awayInfo.es&&m.date===g.local_date.split(' ')[0].replace(/\//g,'-');
-  });
-
-  if(matchInOurApi&&matchInOurApi.datetimeMX){
-    // Usar datetimeMX de tu API (CDMX correcto)
-    const timeMatch=matchInOurApi.datetimeMX.match(/T(\d{2}):(\d{2})/);
-    if(timeMatch)timeDisplay=`${timeMatch[1]}:${timeMatch[2]}`;
-    dateDisplay=matchInOurApi.date;
-  }else{
-    // Fallback: local_date de worldcup26.ir (hora local del estadio)
-    const parts=g.local_date.split(' ');
-    if(parts.length>=2){
-      dateDisplay=parts[0].replace(/\//g,'-'); // 06/13/2026 → 06-13-2026
-      timeDisplay=parts[1]; // 21:00 (hora local del estadio, no CDMX)
-    }
-  }
-
-  // Score
+  // Score (del backend ya viene como string "home_score" o "away_score")
   let scoreDisplay;
-  if(isFinished){
-    scoreDisplay=`${g.home_score}-${g.away_score}`;
-  }else if(isLive){
-    scoreDisplay=`${g.home_score}-${g.away_score}`;
+  if(isFinished || g.status === 'finished'){
+    scoreDisplay = `${g.home_score}-${g.away_score}`;
+  }else if(isLive || g.status === 'live'){
+    scoreDisplay = `${g.home_score}-${g.away_score}`;
   }else{
-    scoreDisplay='Aun no ha iniciado';
+    scoreDisplay = 'Aun no ha iniciado';
   }
 
-  const status=isLive?'live':isFinished?'finished':'upcoming';
-  const statusText=isLive?`EN VIVO ${g.time_elapsed||''}`:isFinished?'FINALIZADO':'PENDIENTE';
+  // Status del backend
+  const status = g.status || (isLive ? 'live' : isFinished ? 'finished' : 'upcoming');
+  const statusText = status==='live'?`EN VIVO ${g.time_elapsed||''}`:status==='finished'?'FINALIZADO':'PENDIENTE';
 
-  // Parse scorers
+  // Goleadores ya parseados como array por el backend
   let scorersHtml='';
-  if(isFinished&&g.home_scorers&&g.home_scorers!=='null'){
-    try{
-      const scorers=g.home_scorers.replace(/[{}"]/g,'').split(',');
-      scorersHtml+=`<div class="wc-match-scorers" style="color:var(--green-light)">${esc(homeName)}: ${scorers.join(', ')}</div>`;
-    }catch(e){}
+  if((isFinished || g.status==='finished') && g.home_scorers_list && g.home_scorers_list.length){
+    scorersHtml += `<div class="wc-match-scorers" style="color:var(--green-light)">${esc(homeName)}: ${g.home_scorers_list.join(', ')}</div>`;
   }
-  if(isFinished&&g.away_scorers&&g.away_scorers!=='null'){
-    try{
-      const scorers=g.away_scorers.replace(/[{}"]/g,'').split(',');
-      scorersHtml+=`<div class="wc-match-scorers" style="color:var(--red)">${esc(awayName)}: ${scorers.join(', ')}</div>`;
-    }catch(e){}
+  if((isFinished || g.status==='finished') && g.away_scorers_list && g.away_scorers_list.length){
+    scorersHtml += `<div class="wc-match-scorers" style="color:var(--red)">${esc(awayName)}: ${g.away_scorers_list.join(', ')}</div>`;
   }
 
-  // Stadium info
-  let stadiumHtml='';
-  if(state.wc.stadiums&&state.wc.stadiums.stadiums){
-    const stadium=state.wc.stadiums.stadiums.find(s=>s.id===g.stadium_id);
-    if(stadium){
-      stadiumHtml=`<span><i class="fa-solid fa-stadium" style="margin-right:.2rem"></i>${stadium.name_en}, ${stadium.city_en}</span>`;
-    }
-  }
+  // Estadio del backend (ya no buscamos en state.wc.stadiums)
+  const stadiumHtml = g.stadium_name_en 
+    ? `<span><i class="fa-solid fa-stadium" style="margin-right:.2rem"></i>${esc(g.stadium_name_en)}, ${esc(g.stadium_city||'')}</span>`
+    : '';
 
-  // Indicador de zona horaria si no es CDMX
-  const timeZoneHint=matchInOurApi?'CDMX':'Local';
+  // Zona horaria: siempre CDMX porque el backend ya convirtió
+  const timeZoneHint = 'CDMX';
 
   return `<div class="card wc-match-card">
-    <div class="wc-match-time">${dateDisplay}<br>${timeDisplay} ${timeZoneHint!=='CDMX'?`<span style="font-size:.6rem;color:var(--fg-muted)">(${timeZoneHint})</span>`:''}</div>
+    <div class="wc-match-time">${dateDisplay}<br>${timeDisplay} <span style="font-size:.6rem;color:var(--fg-muted)">(${timeZoneHint})</span></div>
     <div class="wc-match-teams">
-      <div class="wc-match-team"><span style="font-size:1.3rem">${homeInfo.f}</span><span style="font-family:'Oswald';font-weight:600">${esc(homeName)}</span></div>
-      <div class="wc-match-score" style="${!isLive&&!isFinished?'font-size:.9rem;color:var(--fg-muted)':''}">${scoreDisplay}</div>
-      <div class="wc-match-team right"><span style="font-family:'Oswald';font-weight:600">${esc(awayName)}</span><span style="font-size:1.3rem">${awayInfo.f}</span></div>
+      <div class="wc-match-team">${homeFlag?`<img src="${esc(homeFlag)}" style="width:28px;height:20px;border-radius:3px;object-fit:cover;" onerror="this.outerHTML='⚽'">`:'<span style="font-size:1.3rem">⚽</span>'}<span style="font-family:'Oswald';font-weight:600">${esc(homeName)}</span></div>
+      <div class="wc-match-score" style="${status==='upcoming'?'font-size:.9rem;color:var(--fg-muted)':''}">${scoreDisplay}</div>
+      <div class="wc-match-team right"><span style="font-family:'Oswald';font-weight:600">${esc(awayName)}</span>${awayFlag?`<img src="${esc(awayFlag)}" style="width:28px;height:20px;border-radius:3px;object-fit:cover;" onerror="this.outerHTML='⚽'">`:'<span style="font-size:1.3rem">⚽</span>'}</div>
     </div>
     <span class="wc-match-status wc-status-${status}">${statusText}</span>
     <div class="wc-match-info">
       ${stadiumHtml}
       <span><i class="fa-solid fa-layer-group" style="margin-right:.2rem"></i>${g.group||g.type}</span>
+      ${g.stadium_capacity?`<span><i class="fa-solid fa-users" style="margin-right:.2rem"></i>${g.stadium_capacity.toLocaleString()}</span>`:''}
     </div>
     ${scorersHtml}
   </div>`;
@@ -1403,19 +1362,23 @@ function renderWCBracket(){
       <div class="bracket-phase-label">${phase.label}</div>`;
 
     phaseGames.forEach(g=>{
-      const homeName=g.home_team_name_en||g.home_team_label||'TBD';
-      const awayName=g.away_team_name_en||g.away_team_label||'TBD';
-      const homeInfo=tmById(g.home_team_id);
-      const awayInfo=tmById(g.away_team_id);
-      const hasScore=g.finished==='TRUE'||(g.home_score!=='0'&&g.away_score!=='0');
-      const homeScore=hasScore?g.home_score:'?';
-      const awayScore=hasScore?g.away_score:'?';
-      const homeWinner=hasScore&&parseInt(g.home_score)>parseInt(g.away_score);
-      const awayWinner=hasScore&&parseInt(g.away_score)>parseInt(g.home_score);
+      // Usar nombres en español del backend si están disponibles
+      const homeName = g.home_team_name_es || g.home_team_label || 'TBD';
+      const awayName = g.away_team_name_es || g.away_team_label || 'TBD';
+      const homeFlag = g.home_flag || tmById(g.home_team_id).f;
+      const awayFlag = g.away_flag || tmById(g.away_team_id).f;
+
+      // Status del backend
+      const isFinished = g.status === 'finished';
+      const hasScore = isFinished || (g.home_score && g.away_score && g.home_score !== '0' && g.away_score !== '0');
+      const homeScore = hasScore ? g.home_score : '?';
+      const awayScore = hasScore ? g.away_score : '?';
+      const homeWinner = isFinished && parseInt(g.home_score) > parseInt(g.away_score);
+      const awayWinner = isFinished && parseInt(g.away_score) > parseInt(g.home_score);
 
       html+=`<div class="bracket-match ${phase.key==='final'?'bracket-final':''}">
-        <div class="bracket-team ${homeWinner?'winner':''}"><span style="font-size:1rem">${homeInfo.f}</span><span>${esc(homeName)}</span><span class="bracket-score">${homeScore}</span></div>
-        <div class="bracket-team ${awayWinner?'winner':''}"><span style="font-size:1rem">${awayInfo.f}</span><span>${esc(awayName)}</span><span class="bracket-score">${awayScore}</span></div>
+        <div class="bracket-team ${homeWinner?'winner':''}">${homeFlag?`<img src="${esc(homeFlag)}" style="width:20px;height:14px;border-radius:2px;object-fit:cover;" onerror="this.outerHTML='⚽'">`:'<span style="font-size:1rem">⚽</span>'}<span>${esc(homeName)}</span><span class="bracket-score">${homeScore}</span></div>
+        <div class="bracket-team ${awayWinner?'winner':''}">${awayFlag?`<img src="${esc(awayFlag)}" style="width:20px;height:14px;border-radius:2px;object-fit:cover;" onerror="this.outerHTML='⚽'">`:'<span style="font-size:1rem">⚽</span>'}<span>${esc(awayName)}</span><span class="bracket-score">${awayScore}</span></div>
       </div>`;
     });
 
