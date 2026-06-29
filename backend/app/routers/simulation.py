@@ -73,26 +73,32 @@ async def run_simulation_endpoint(
 async def get_current_ratings():
     """
     Obtiene los ratings Elo actuales de todos los equipos.
-    Incluye base, current, effective, forma y ajustes por odds.
     """
-    from app.services.simulation_service import HybridRatingSystem
+    try:
+        from app.services.simulation_service import HybridRatingSystem, HOSTS, HOST_ELO_BOOST
 
-    rating_system = HybridRatingSystem()
-    return {
-        "ratings": {
-            team: {
-                "name": r.name,
-                "base_elo": r.base_elo,
-                "current_elo": round(r.current_elo, 1),
-                "effective_elo": round(r.effective_elo, 1),
-                "form_adjustment": round(r.form_adjustment, 1),
-                "odds_adjustment": round(r.odds_adjustment, 1),
-                "fatigue": round(r.fatigue, 1),
-                "attack_strength": round(r.attack_strength, 3),
-                "defense_strength": round(r.defense_strength, 3),
-            }
-            for team, r in rating_system.ratings.items()
-        },
-        "hosts": list(HOSTS),
-        "host_advantage": HOST_ELO_BOOST
-    }
+        rating_system = HybridRatingSystem()
+
+        return {
+            "ratings": {
+                team: {
+                    "name": r.name,
+                    "base_elo": r.base_elo,
+                    "current_elo": round(r.current_elo, 1),
+                    "effective_elo": round(r.effective_elo, 1),
+                    "form_adjustment": round(r.form_adjustment, 1),
+                    "odds_adjustment": round(r.odds_adjustment, 1),
+                    "fatigue": round(r.fatigue, 1),
+                    "attack_strength": round(r.attack_strength, 3),
+                    "defense_strength": round(r.defense_strength, 3),
+                }
+                for team, r in rating_system.ratings.items()
+            },
+            "hosts": list(HOSTS),
+            "host_advantage": HOST_ELO_BOOST
+        }
+    except Exception as e:
+        import traceback
+        print(f"RATINGS ERROR: {str(e)}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Error en ratings: {str(e)}")

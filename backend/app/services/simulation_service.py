@@ -845,14 +845,11 @@ class WorldCupSimulator:
     def _build_bracket(self, qualified: List[Dict]) -> List[Dict]:
         """
         Construye el bracket oficial de la FIFA para Ronda de 32.
-        Basado en el formato oficial de 2026.
         """
         winners = {f"1{t['group']}": t for t in qualified if t.get("position") == 1}
         runners = {f"2{t['group']}": t for t in qualified if t.get("position") == 2}
         thirds = [t for t in qualified if t.get("position") == 3]
 
-        # Asignación oficial FIFA de terceros a partidos
-        # 1A vs 3C/D/E/F, 1B vs 3A/D/E/F, etc.
         third_assignments = {
             "A": ["C", "D", "E", "F"], "B": ["A", "D", "E", "F"],
             "C": ["A", "B", "F", "G"], "D": ["A", "B", "E", "H"],
@@ -864,7 +861,7 @@ class WorldCupSimulator:
 
         bracket = []
 
-        # 8 partidos de 1° vs 2° (protegidos por grupo)
+        # 8 partidos de 1° vs 2°
         cross_matches = [
             ("1A", "2B"), ("1C", "2D"), ("1E", "2F"), ("1G", "2H"),
             ("1I", "2J"), ("1K", "2L"), ("1B", "2A"), ("1D", "2C"),
@@ -878,8 +875,8 @@ class WorldCupSimulator:
                     "type": "1v2"
                 })
 
-        # 8 partidos con terceros (asignación greedy válida)
-        used_thirds = set()
+        # 8 partidos con terceros
+        used_thirds = set()  # <-- Guardamos NOMBRES de equipos, no diccionarios
         third_matches = [
             ("1E", "3"), ("1F", "3"), ("1G", "3"), ("1H", "3"),
             ("2A", "3"), ("2B", "3"), ("2C", "3"), ("2D", "3"),
@@ -891,17 +888,20 @@ class WorldCupSimulator:
 
             assigned = None
             for third in thirds:
-                if third["group"] in valid_groups and third["team"] not in used_thirds:
+                # FIX: Usar el NOMBRE del equipo, no el diccionario completo
+                third_team_name = third["team"]
+                if third["group"] in valid_groups and third_team_name not in used_thirds:
                     assigned = third
-                    used_thirds.add(third["team"])
+                    used_thirds.add(third_team_name)  # <-- Nombre string, no dict
                     break
 
             if not assigned:
                 # Fallback: cualquier tercero no usado
                 for third in thirds:
-                    if third["team"] not in used_thirds:
+                    third_team_name = third["team"]
+                    if third_team_name not in used_thirds:
                         assigned = third
-                        used_thirds.add(third["team"])
+                        used_thirds.add(third_team_name)
                         break
 
             if assigned and slot_key in winners:
