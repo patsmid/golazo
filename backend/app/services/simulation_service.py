@@ -404,7 +404,7 @@ class HybridGoalModel:
     def __init__(self, rating_system: HybridRatingSystem):
         self.ratings = rating_system
 
-    def expected_goals(self, home_team: str, away_team: str, 
+    def expected_goals(self, home_team: str, away_team: str,
                        is_knockout: bool = False,
                        stadium_id: str = "") -> Tuple[float, float]:
         """
@@ -500,7 +500,7 @@ class HybridGoalModel:
             "probs": probs
         }
 
-    def sample_score(self, lambda_home: float, lambda_away: float, 
+    def sample_score(self, lambda_home: float, lambda_away: float,
                      rng: random.Random) -> Tuple[int, int]:
         """Muestrea un marcador usando el modelo híbrido"""
         # Usar Poisson estándar para simulación (más rápido)
@@ -651,11 +651,11 @@ class WorldCupSimulator:
             all_matches[group] = matches
 
             if len(table) > 0:
-                group_winners.append({**table[0], "position": 1})
+                group_winners.append({**table[0], "position": 1, "group": group})
             if len(table) > 1:
-                group_runners.append({**table[1], "position": 2})
+                group_runners.append({**table[1], "position": 2, "group": group})
             if len(table) > 2:
-                third_placed.append({**table[2], "position": 3})
+                third_placed.append({**table[2], "position": 3, "group": group})
 
         # 8 mejores terceros
         best_third = sorted(
@@ -677,7 +677,7 @@ class WorldCupSimulator:
 
     def _simulate_group(self, group: str, teams: List[str]) -> Tuple[List[Dict], List[Dict]]:
         """Simula un grupo de 4 equipos (todos vs todos)"""
-        stats = {team: {"team": team, "points": 0, "gf": 0, "ga": 0, "gd": 0, "matches": []} 
+        stats = {team: {"team": team, "points": 0, "gf": 0, "ga": 0, "gd": 0, "matches": []}
                  for team in teams}
         matches = []
 
