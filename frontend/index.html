@@ -249,6 +249,79 @@
     .wc-live-indicator{display:inline-flex;align-items:center;gap:.3rem;font-size:.65rem;color:var(--red);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
     .wc-live-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1.5s infinite}
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+    /* ===== SIMULATION SECTION ENHANCED ===== */
+    .sim-controls-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1.25rem;align-items:end}
+    .sim-field label{display:block;font-size:.7rem;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;font-weight:600}
+    .sim-input-wrap{position:relative}
+    .sim-input{width:100%;padding:.55rem .75rem;border-radius:8px;background:var(--bg-card);border:1px solid var(--border);color:var(--fg);font-family:'Source Sans 3',sans-serif;font-size:.9rem;transition:border-color .2s}
+    .sim-input:focus{outline:none;border-color:var(--gold-border)}
+    .sim-hint{position:absolute;right:.6rem;top:50%;transform:translateY(-50%);font-size:.65rem;color:var(--fg-muted);pointer-events:none}
+    .sim-toggle-wrap{display:flex;align-items:flex-end;padding-bottom:.2rem}
+    .sim-toggle{display:flex;align-items:center;gap:.75rem;cursor:pointer}
+    .sim-toggle input{position:absolute;opacity:0;width:0;height:0}
+    .sim-toggle-slider{position:relative;width:44px;height:24px;background:var(--border);border-radius:99px;transition:background .25s;flex-shrink:0}
+    .sim-toggle-slider::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:var(--fg);border-radius:50%;transition:transform .25s}
+    .sim-toggle input:checked + .sim-toggle-slider{background:var(--green)}
+    .sim-toggle input:checked + .sim-toggle-slider::after{transform:translateX(20px);background:#fff}
+    .sim-toggle-label{display:flex;flex-direction:column;font-size:.8rem;color:var(--fg);font-weight:600}
+    .sim-toggle-label small{font-size:.65rem;color:var(--fg-muted);font-weight:400}
+    .sim-actions{display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end}
+    .sim-status-bar{margin-top:1rem;font-size:.8rem;color:var(--fg-muted);min-height:1.4rem}
+    .sim-status-bar.running{color:var(--gold)}
+    .sim-status-bar.ok{color:var(--green-light)}
+    .sim-status-bar.err{color:var(--red)}
+
+    .sim-result-tabs{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:1.5rem;border-bottom:1px solid var(--border);padding-bottom:.75rem}
+    .sim-r-tab{font-family:'Oswald',sans-serif;font-weight:500;font-size:.8rem;padding:.45rem 1rem;border-radius:6px;border:1px solid transparent;background:transparent;color:var(--fg-muted);cursor:pointer;transition:all .2s}
+    .sim-r-tab:hover{color:var(--fg-dim)}
+    .sim-r-tab.active{background:var(--gold-glow);border-color:var(--gold-border);color:var(--gold)}
+    .sim-tab-panel{display:none}.sim-tab-panel.active{display:block}
+
+    /* Champion list enhanced */
+    .champ-row{display:flex;align-items:center;gap:.75rem;padding:.55rem 0;border-bottom:1px solid var(--border)}
+    .champ-row:last-child{border-bottom:none}
+    .champ-pos{font-family:'Oswald',sans-serif;font-weight:700;font-size:.85rem;width:1.6rem;text-align:center}
+    .champ-pos.gold{color:var(--gold)}.champ-pos.silver{color:var(--fg-dim)}.champ-pos.bronze{color:var(--amber)}
+    .champ-flag{font-size:1.2rem;width:1.5rem;text-align:center}
+    .champ-name{font-family:'Oswald',sans-serif;font-weight:600;font-size:.9rem;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .champ-bar-wrap{width:120px;flex-shrink:0}
+    .champ-bar{height:5px;border-radius:99px;background:rgba(255,255,255,.04);overflow:hidden}
+    .champ-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold-dark),var(--gold));transition:width 1s ease}
+    .champ-pct{font-family:'Oswald',sans-serif;font-weight:600;font-size:.85rem;width:3.5rem;text-align:right;flex-shrink:0}
+
+    /* Phase tabs */
+    .phase-tabs{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:1rem}
+    .phase-tab{font-family:'Oswald',sans-serif;font-weight:500;font-size:.75rem;padding:.35rem .8rem;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--fg-muted);cursor:pointer;transition:all .2s}
+    .phase-tab:hover{border-color:var(--border-hover);color:var(--fg-dim)}
+    .phase-tab.active{background:var(--blue-glow);border-color:var(--blue-border);color:var(--blue)}
+    .phase-grid{display:grid;gap:.5rem;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+    .phase-card{padding:.85rem;border-radius:8px;background:var(--bg-raised);border:1px solid var(--border);display:flex;align-items:center;gap:.6rem}
+    .phase-card .phase-flag{font-size:1.1rem}
+    .phase-card .phase-name{font-family:'Oswald',sans-serif;font-weight:600;font-size:.85rem;flex:1}
+    .phase-card .phase-bar-wrap{flex:1;height:4px;background:var(--border);border-radius:99px;overflow:hidden;max-width:100px}
+    .phase-card .phase-bar-fill{height:100%;border-radius:99px;background:var(--blue);transition:width .8s ease}
+    .phase-card .phase-pct{font-family:'Oswald';font-weight:600;font-size:.8rem;width:3rem;text-align:right}
+
+    /* Bracket mini */
+    .bracket-mini{display:grid;grid-template-columns:repeat(5,1fr);gap:.4rem;min-width:700px}
+    .bracket-mini-col{display:flex;flex-direction:column;gap:.35rem;justify-content:space-around}
+    .bracket-mini-match{padding:.5rem;border-radius:6px;background:var(--bg-raised);border:1px solid var(--border);font-size:.7rem}
+    .bracket-mini-team{display:flex;align-items:center;gap:.3rem;padding:.12rem 0}
+    .bracket-mini-team.winner{font-weight:600;color:var(--gold)}
+    .bracket-mini-team.loser{color:var(--fg-muted);opacity:.6}
+    .bracket-mini-score{font-family:'Oswald';margin-left:auto;font-weight:600}
+    .bracket-mini-label{font-family:'Oswald';font-size:.6rem;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.06em;text-align:center;margin-bottom:.35rem}
+
+    /* Ratings table */
+    .ratings-table{width:100%;border-collapse:collapse;font-size:.82rem}
+    .ratings-table th{font-family:'Oswald';font-weight:500;font-size:.65rem;color:var(--fg-muted);text-transform:uppercase;letter-spacing:.04em;text-align:left;padding:.45rem .5rem;border-bottom:1px solid var(--border)}
+    .ratings-table td{padding:.5rem .5rem;border-bottom:1px solid var(--border)}
+    .ratings-table tr:hover td{background:rgba(255,255,255,.02)}
+    .rating-bar-wrap{width:60px;height:4px;background:var(--border);border-radius:99px;overflow:hidden;display:inline-block;vertical-align:middle;margin-left:.3rem}
+    .rating-bar-fill{height:100%;border-radius:99px;background:var(--gold)}
+    .rating-num{font-family:'Oswald';font-weight:600;font-size:.8rem}
+    .rating-delta.pos{color:var(--green-light)}.rating-delta.neg{color:var(--red)}
   </style>
 </head>
 <body>
@@ -302,33 +375,111 @@
       </div>
       <div id="predList" class="flex flex-col gap-4"></div>
     </div></section>
+
     <section id="sec-simulation"><div class="max-w">
       <div class="sec-head reveal">
-        <div class="sec-badge green"><i class="fa-solid fa-dice"></i> Monte Carlo</div>
-        <h2 class="sec-title">Simulacion de Torneo</h2>
-        <p class="sec-desc">Simula miles de escenarios para estimar probabilidades reales.</p>
+        <div class="sec-badge green"><i class="fa-solid fa-dice"></i> Monte Carlo Híbrido</div>
+        <h2 class="sec-title">Simulación de Torneo</h2>
+        <p class="sec-desc">Modelo híbrido: Elo + Dixon-Coles + forma reciente + odds de mercado + localía real.</p>
       </div>
-      <div class="sim-controls reveal">
-        <input type="number" class="sim-input" id="simCount" value="1000" min="100" max="100000" step="500">
-        <button class="btn btn-gold btn-sm" id="simBtn" onclick="runSim()"><i class="fa-solid fa-play"></i> Ejecutar</button>
-        <span id="simStatus" class="text-sm" style="color:var(--fg-muted)"></span>
-      </div>
-      <div class="sim-grid">
-        <div class="card card-p-lg reveal">
-          <h3 class="font-display font-600 text-sm tracking-wider mb-4" style="color:var(--fg-muted);text-transform:uppercase;letter-spacing:.06em;">Probabilidad de Campeonato</h3>
-          <div id="champList"><div class="empty-state"><div class="empty-icon"><i class="fa-solid fa-trophy"></i></div><div class="empty-text">Ejecuta una simulacion</div></div></div>
+
+      <!-- CONTROLES -->
+      <div class="card card-p-lg reveal" style="margin-bottom:2rem">
+        <div class="sim-controls-grid">
+          <div class="sim-field">
+            <label>Simulaciones</label>
+            <div class="sim-input-wrap">
+              <input type="number" class="sim-input" id="simCount" value="5000" min="100" max="100000" step="500">
+              <span class="sim-hint">100 – 100,000</span>
+            </div>
+          </div>
+          <div class="sim-field">
+            <label>Semilla (opcional)</label>
+            <div class="sim-input-wrap">
+              <input type="number" class="sim-input" id="simSeed" placeholder="Aleatoria">
+              <span class="sim-hint">Reproducibilidad</span>
+            </div>
+          </div>
+          <div class="sim-field sim-toggle-wrap">
+            <label class="sim-toggle">
+              <input type="checkbox" id="simLiveData" checked>
+              <span class="sim-toggle-slider"></span>
+              <span class="sim-toggle-label">
+                <i class="fa-solid fa-satellite-dish"></i> Datos en vivo
+                <small>Actualiza Elo con resultados reales</small>
+              </span>
+            </label>
+          </div>
+          <div class="sim-field sim-toggle-wrap">
+            <label class="sim-toggle">
+              <input type="checkbox" id="simUseOdds" checked>
+              <span class="sim-toggle-slider"></span>
+              <span class="sim-toggle-label">
+                <i class="fa-solid fa-chart-line"></i> Odds de mercado
+                <small>Ajuste bayesiano suave</small>
+              </span>
+            </label>
+          </div>
+          <div class="sim-field sim-actions">
+            <button class="btn btn-gold" id="simBtn" onclick="runSim()">
+              <i class="fa-solid fa-play"></i> Ejecutar
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="loadRatings()">
+              <i class="fa-solid fa-ranking-star"></i> Ver Ratings
+            </button>
+          </div>
         </div>
-        <div class="card card-p-lg reveal">
-          <h3 class="font-display font-600 text-sm tracking-wider mb-4" style="color:var(--fg-muted);text-transform:uppercase;letter-spacing:.06em;">Tabla de Grupo</h3>
+        <div id="simStatus" class="sim-status-bar"></div>
+      </div>
+
+      <!-- RESULTADOS TABS -->
+      <div class="card card-p-lg reveal" id="simResultsCard" style="display:none;">
+        <div class="sim-result-tabs" id="simResultTabs">
+          <button class="sim-r-tab active" onclick="selectSimTab('champ',this)">
+            <i class="fa-solid fa-trophy"></i> Campeonato
+          </button>
+          <button class="sim-r-tab" onclick="selectSimTab('phases',this)">
+            <i class="fa-solid fa-layer-group"></i> Por Fase
+          </button>
+          <button class="sim-r-tab" onclick="selectSimTab('groups',this)">
+            <i class="fa-solid fa-table"></i> Grupos
+          </button>
+          <button class="sim-r-tab" onclick="selectSimTab('bracket',this)">
+            <i class="fa-solid fa-sitemap"></i> Bracket
+          </button>
+          <button class="sim-r-tab" onclick="selectSimTab('ratings',this)">
+            <i class="fa-solid fa-ranking-star"></i> Ratings Elo
+          </button>
+        </div>
+
+        <div id="sim-tab-champ" class="sim-tab-panel active">
+          <div id="champList"></div>
+        </div>
+        <div id="sim-tab-phases" class="sim-tab-panel">
+          <div class="phase-tabs" id="phaseTabs"></div>
+          <div id="phaseContent"></div>
+        </div>
+        <div id="sim-tab-groups" class="sim-tab-panel">
           <div class="group-tabs" id="groupTabs"></div>
-          <div id="groupTableWrap"><div class="empty-state"><div class="empty-text">Selecciona un grupo</div></div></div>
+          <div id="groupTableWrap"></div>
+        </div>
+        <div id="sim-tab-bracket" class="sim-tab-panel">
+          <div id="bracketWrap"></div>
+        </div>
+        <div id="sim-tab-ratings" class="sim-tab-panel">
+          <div id="ratingsWrap"></div>
         </div>
       </div>
+
+      <!-- ULTIMA SIMULACION -->
       <div class="card card-p-lg mt-6 reveal" id="lastSimCard" style="display:none;">
-        <h3 class="font-display font-600 text-sm tracking-wider mb-3" style="color:var(--fg-muted);text-transform:uppercase;letter-spacing:.06em;">Ultima Simulacion</h3>
+        <h3 class="font-display font-600 text-sm tracking-wider mb-3" style="color:var(--fg-muted);text-transform:uppercase;letter-spacing:.06em;">
+          <i class="fa-solid fa-eye"></i> Última Simulación (Ejemplo)
+        </h3>
         <div id="lastSimContent"></div>
       </div>
     </div></section>
+
     <section id="sec-matches"><div class="max-w">
       <div class="sec-head reveal">
         <div class="sec-badge"><i class="fa-solid fa-calendar"></i> Proximos Encuentros</div>
@@ -889,96 +1040,323 @@ function renderDetail(p,info){
 }
 
 // ============================================================================
-// SIMULACION
+// SIMULACION v2.0 - Integracion completa con endpoint hibrido
 // ============================================================================
+
+let simState = {
+  data: null,
+  selectedGroup: 'A',
+  selectedPhase: 'champion',
+  ratings: null
+};
+
 async function runSim(){
-  const btn=document.getElementById('simBtn'),status=document.getElementById('simStatus');
-  const count=Math.max(100,Math.min(100000,parseInt(document.getElementById('simCount').value)||1000));
-  state.loading.simulation=true;
-  btn.disabled=true;
-  status.textContent='Despertando servidor...';
-  document.getElementById('champList').innerHTML=loadingHTML(`Ejecutando ${count.toLocaleString()} simulaciones...`,'Primera vez puede tardar hasta 2 minutos');
-  const data=await apiGet('/api/v1/simulation/run',{num_simulations:count});
-  state.loading.simulation=false;
-  btn.disabled=false;
-  if(!data||!data.probabilities){
-    status.textContent='Error';
-    document.getElementById('champList').innerHTML=emptyHTML('fa-dice','La simulacion tardo demasiado. Intenta con menos simulaciones.',true);
+  const btn = document.getElementById('simBtn');
+  const status = document.getElementById('simStatus');
+  const count = Math.max(100, Math.min(100000, parseInt(document.getElementById('simCount').value) || 5000));
+  const seedVal = document.getElementById('simSeed').value.trim();
+  const useLive = document.getElementById('simLiveData').checked;
+  const useOdds = document.getElementById('simUseOdds').checked;
+
+  state.loading.simulation = true;
+  btn.disabled = true;
+  status.className = 'sim-status-bar running';
+  status.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Despertando servidor y ejecutando modelo híbrido...';
+
+  document.getElementById('simResultsCard').style.display = 'none';
+  document.getElementById('lastSimCard').style.display = 'none';
+
+  const params = { num_simulations: count };
+  if(seedVal) params.seed = parseInt(seedVal);
+  if(!useLive) params.use_live_data = 'false';
+  if(!useOdds) params.use_odds = 'false';
+
+  const data = await apiGet('/api/v1/simulation/run', params);
+
+  state.loading.simulation = false;
+  btn.disabled = false;
+
+  if(!data || !data.probabilities){
+    status.className = 'sim-status-bar err';
+    status.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Error en simulación. Intenta con menos simulaciones o recarga.';
+    toast('La simulación falló. El servidor puede estar despertando.', 'error');
     return;
   }
-  state.simulation=data;
-  status.textContent=`${data.num_simulations.toLocaleString()} simulaciones completadas`;
+
+  simState.data = data;
+  state.simulation = data;
+
+  status.className = 'sim-status-bar ok';
+  status.innerHTML = `<i class="fa-solid fa-circle-check"></i> <b>${data.num_simulations.toLocaleString()}</b> simulaciones completadas en modelo híbrido (Elo + Dixon-Coles${useOdds?' + Odds':''}${useLive?' + Vivo':''})`;
+
+  document.getElementById('simResultsCard').style.display = 'block';
+
+  // Renderizar todo
   renderChamp(data.probabilities.champion);
+  renderPhaseTabs(data.probabilities);
+  renderPhaseContent('champion', data.probabilities);
   renderGroupTabs(data.probabilities.group_winners);
-  renderGroupTable(state.selectedGroup,data);
+  renderGroupTable(simState.selectedGroup, data);
+  renderBracketMini(data.last_simulation);
   renderLastSim(data.last_simulation);
-  toast(`Simulacion: ${data.num_simulations.toLocaleString()} escenarios`,'ok');
+
+  document.getElementById('lastSimCard').style.display = 'block';
+
+  toast(`Simulación completada: ${data.num_simulations.toLocaleString()} escenarios`, 'ok');
 }
 
+function selectSimTab(tab, btn){
+  document.querySelectorAll('.sim-r-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.sim-tab-panel').forEach(p => p.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.getElementById(`sim-tab-${tab}`).classList.add('active');
+
+  if(tab === 'ratings' && !simState.ratings) loadRatings();
+  if(tab === 'bracket' && simState.data) renderBracketMini(simState.data.last_simulation);
+}
+
+// --- CAMPEONATO ---
 function renderChamp(cp){
-  if(!cp)return;
-  const s=Object.entries(cp).sort((a,b)=>b[1]-a[1]).slice(0,12);
-  if(!s.length)return;
-  const mx=s[0][1]||1;
-  document.getElementById('champList').innerHTML=s.map(([n,p],i)=>{
-    const t=tm(n);
-    return `<div class="champ-row"><span class="champ-pos" style="color:${i<3?'var(--gold)':'var(--fg-muted)'}">${i+1}</span><span class="champ-flag">${t.f}</span><span class="champ-name">${t.es}</span><div class="champ-bar-wrap"><div class="champ-bar"><div class="champ-bar-fill" style="width:${(p/mx*100).toFixed(1)}%"></div></div></div><span class="champ-pct" style="color:${i<3?'var(--gold)':'var(--fg-dim)'}">${(p*100).toFixed(1)}%</span></div>`;
+  if(!cp){
+    document.getElementById('champList').innerHTML = emptyHTML('fa-trophy','Sin datos de campeonato', false);
+    return;
+  }
+  const sorted = Object.entries(cp).sort((a,b) => b[1] - a[1]).slice(0, 12);
+  if(!sorted.length){
+    document.getElementById('champList').innerHTML = emptyHTML('fa-trophy','Sin datos', false);
+    return;
+  }
+  const max = sorted[0][1] || 1;
+  const medals = ['gold','silver','bronze','','','','','','','','',''];
+  document.getElementById('champList').innerHTML = sorted.map(([n,p],i) => {
+    const t = tm(n);
+    const pct = (p*100).toFixed(1);
+    const w = (p/max*100).toFixed(1);
+    return `<div class="champ-row">
+      <span class="champ-pos ${medals[i]}">${i+1}</span>
+      <span class="champ-flag">${t.f}</span>
+      <span class="champ-name">${esc(t.es)}</span>
+      <div class="champ-bar-wrap"><div class="champ-bar"><div class="champ-bar-fill" style="width:${w}%"></div></div></div>
+      <span class="champ-pct" style="color:${i<3?'var(--gold)':'var(--fg-dim)'}">${pct}%</span>
+    </div>`;
   }).join('');
 }
 
-function renderGroupTabs(gw){
-  if(!gw)return;
-  document.getElementById('groupTabs').innerHTML=Object.keys(gw).map(l=>`<button class="group-tab ${l===state.selectedGroup?'active':''}" onclick="selectGroup('${l}',this)">${l}</button>`).join('');
+// --- FASES ---
+function renderPhaseTabs(probs){
+  const phases = [
+    {k:'champion',l:'Campeón',i:'fa-trophy'},
+    {k:'finalist',l:'Finalista',i:'fa-medal'},
+    {k:'semi_finalist',l:'Semifinal',i:'fa-chess-rook'},
+    {k:'quarter_finalist',l:'Cuartos',i:'fa-shield-halved'},
+    {k:'round_of_16',l:'Octavos',i:'fa-flag'},
+    {k:'round_of_32',l:'Ronda 32',i:'fa-futbol'},
+    {k:'qualified',l:'Clasificado',i:'fa-check-double'}
+  ];
+  document.getElementById('phaseTabs').innerHTML = phases.map(ph => {
+    const hasData = probs[ph.k] && Object.keys(probs[ph.k]).length > 0;
+    return `<button class="phase-tab ${ph.k===simState.selectedPhase?'active':''} ${!hasData?'disabled':''}"
+      onclick="selectPhase('${ph.k}',this)" ${!hasData?'disabled':''}>
+      <i class="fa-solid ${ph.i}"></i> ${ph.l}
+    </button>`;
+  }).join('');
 }
 
-function selectGroup(l,btn){
-  state.selectedGroup=l;
-  document.querySelectorAll('.group-tab').forEach(b=>b.classList.remove('active'));
-  if(btn)btn.classList.add('active');
-  if(state.simulation)renderGroupTable(l,state.simulation);
+function selectPhase(phase, btn){
+  simState.selectedPhase = phase;
+  document.querySelectorAll('.phase-tab').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  if(simState.data) renderPhaseContent(phase, simState.data.probabilities);
 }
 
-function renderGroupTable(letter,sd){
-  const w=document.getElementById('groupTableWrap');
-  const st=sd?.last_simulation?.group_stage?.standings?.[letter];
-  if(!st||!st.length){
-    w.innerHTML=emptyHTML('fa-layer-group','Sin datos',false);
+function renderPhaseContent(phase, probs){
+  const data = probs[phase];
+  if(!data || !Object.keys(data).length){
+    document.getElementById('phaseContent').innerHTML = emptyHTML('fa-layer-group','Sin datos para esta fase', false);
     return;
   }
-  const gw=sd.probabilities?.group_winners?.[letter]||{};
-  w.innerHTML=`<table class="group-table"><thead><tr><th class="num">#</th><th>Equipo</th><th class="num">PJ</th><th class="num">PG</th><th class="num">PE</th><th class="num">PP</th><th class="num">GF</th><th class="num">GC</th><th class="num">DG</th><th class="num">Pts</th></tr></thead><tbody>${st.map((r,i)=>{
-    const t=tm(r.team);
-    const m=r.matches||[];
-    const pl=m.length;
-    const wn=m.filter(x=>x.result==='win').length;
-    const dr=m.filter(x=>x.result==='draw').length;
-    const ls=m.filter(x=>x.result==='loss').length;
-    const q=i<2;
-    return `<tr class="${q?'qualified':'not-qualified'}"><td class="num">${i+1}</td><td><div class="team-cell"><span>${t.f}</span><span>${t.es}${q?' <span style="font-size:.6rem;color:var(--green-light);margin-left:.3rem;">CLAS</span>':''}</span></div></td><td class="num">${pl}</td><td class="num">${wn}</td><td class="num">${dr}</td><td class="num">${ls}</td><td class="num">${r.gf??0}</td><td class="num">${r.ga??0}</td><td class="num">${(r.gd??0)>0?'+':''}${r.gd??0}</td><td class="num" style="font-weight:700;">${r.points??0}</td></tr>`;
-  }).join('')}</tbody></table><div style="margin-top:.75rem;font-size:.7rem;color:var(--fg-muted);">Probabilidades (${(sd.num_simulations||0).toLocaleString()} sims): ${Object.entries(gw).map(([t,p])=>`<span style="margin-right:.6rem;">${tm(t).f} ${tm(t).es} 1°: <b style="color:var(--gold);">${(p*100).toFixed(1)}%</b></span>`).join('')}</div>`;
+  const sorted = Object.entries(data).sort((a,b) => b[1] - a[1]).slice(0, 24);
+  const max = sorted[0][1] || 1;
+  document.getElementById('phaseContent').innerHTML = `<div class="phase-grid">${sorted.map(([n,p]) => {
+    const t = tm(n);
+    const pct = (p*100).toFixed(1);
+    return `<div class="phase-card">
+      <span class="phase-flag">${t.f}</span>
+      <span class="phase-name">${esc(t.es)}</span>
+      <div class="phase-bar-wrap"><div class="phase-bar-fill" style="width:${(p/max*100).toFixed(1)}%"></div></div>
+      <span class="phase-pct">${pct}%</span>
+    </div>`;
+  }).join('')}</div>`;
 }
 
+// --- GRUPOS ---
+function renderGroupTabs(gw){
+  if(!gw) return;
+  const letters = Object.keys(gw).sort();
+  document.getElementById('groupTabs').innerHTML = letters.map(l =>
+    `<button class="group-tab ${l===simState.selectedGroup?'active':''}" onclick="selectGroup('${l}',this)">Grupo ${l}</button>`
+  ).join('');
+}
+
+function selectGroup(l, btn){
+  simState.selectedGroup = l;
+  document.querySelectorAll('.group-tab').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  if(simState.data) renderGroupTable(l, simState.data);
+}
+
+function renderGroupTable(letter, sd){
+  const w = document.getElementById('groupTableWrap');
+  const st = sd?.last_simulation?.group_stage?.standings?.[letter];
+  if(!st || !st.length){
+    w.innerHTML = emptyHTML('fa-table','Sin datos de grupo', false);
+    return;
+  }
+  const gw = sd.probabilities?.group_winners?.[letter] || {};
+  const gr = sd.probabilities?.group_runners_up?.[letter] || {};
+  const gt = sd.probabilities?.group_third?.[letter] || {};
+
+  w.innerHTML = `<table class="group-table">
+    <thead><tr><th class="num">#</th><th>Equipo</th><th class="num">PJ</th><th class="num">PG</th><th class="num">PE</th><th class="num">PP</th><th class="num">GF</th><th class="num">GC</th><th class="num">DG</th><th class="num">Pts</th><th class="num">1°</th><th class="num">2°</th><th class="num">3°</th></tr></thead>
+    <tbody>${st.map((r,i) => {
+      const t = tm(r.team);
+      const m = r.matches || [];
+      const pl = m.length;
+      const wn = m.filter(x => x.result === 'win').length;
+      const dr = m.filter(x => x.result === 'draw').length;
+      const ls = m.filter(x => x.result === 'loss').length;
+      const q = i < 2;
+      const p1 = (gw[r.team]||0)*100;
+      const p2 = (gr[r.team]||0)*100;
+      const p3 = (gt[r.team]||0)*100;
+      return `<tr class="${q?'qualified':'not-qualified'}">
+        <td class="num">${i+1}</td>
+        <td><div class="team-cell"><span>${t.f}</span><span>${t.es}${q?' <span style="font-size:.6rem;color:var(--green-light);margin-left:.3rem;">CLAS</span>':''}</span></div></td>
+        <td class="num">${pl}</td><td class="num">${wn}</td><td class="num">${dr}</td><td class="num">${ls}</td>
+        <td class="num">${r.gf??0}</td><td class="num">${r.ga??0}</td><td class="num">${(r.gd??0)>0?'+':''}${r.gd??0}</td>
+        <td class="num" style="font-weight:700">${r.points??0}</td>
+        <td class="num" style="color:var(--gold)">${p1.toFixed(1)}%</td>
+        <td class="num" style="color:var(--blue)">${p2.toFixed(1)}%</td>
+        <td class="num" style="color:var(--fg-muted)">${p3.toFixed(1)}%</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+
+// --- BRACKET MINI ---
+function renderBracketMini(ls){
+  const el = document.getElementById('bracketWrap');
+  if(!ls || !ls.knockout){
+    el.innerHTML = emptyHTML('fa-sitemap','Sin datos de bracket', false);
+    return;
+  }
+  const rd = ls.knockout.rounds || {};
+  const nm = {round_of_32:'R32',round_of_16:'R16',quarter_finals:'QF',semi_finals:'SF',final:'Final',third:'3°'};
+  let html = '<div style="overflow-x:auto;padding-bottom:.5rem"><div class="bracket-mini">';
+  for(const [k,n] of Object.entries(nm)){
+    const ms = rd[k];
+    if(!ms || (Array.isArray(ms) && !ms.length)) continue;
+    html += `<div class="bracket-mini-col"><div class="bracket-mini-label">${n}</div>`;
+    const arr = Array.isArray(ms) ? ms : [ms];
+    arr.forEach(m => {
+      const a = tm(m.home || m.team_a), b = tm(m.away || m.team_b);
+      const sc = `${m.goals_home??m.goals_a??'?'}-${m.goals_away??m.goals_b??'?'}`;
+      const w = m.winner;
+      const wa = w === (m.home||m.team_a);
+      const wb = w === (m.away||m.team_b);
+      html += `<div class="bracket-mini-match">
+        <div class="bracket-mini-team ${wa?'winner':''}"><span style="font-size:1rem">${a.f}</span><span>${esc(a.es)}</span><span class="bracket-mini-score">${sc.split('-')[0]}</span></div>
+        <div class="bracket-mini-team ${wb?'winner':''}"><span style="font-size:1rem">${b.f}</span><span>${esc(b.es)}</span><span class="bracket-mini-score">${sc.split('-')[1]}</span></div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  html += '</div></div>';
+  el.innerHTML = html;
+}
+
+// --- RATINGS ELO ---
+async function loadRatings(){
+  const wrap = document.getElementById('ratingsWrap');
+  wrap.innerHTML = loadingHTML('Cargando ratings Elo...','Datos híbridos en tiempo real');
+  const data = await apiGet('/api/v1/simulation/ratings');
+  if(!data || !data.ratings){
+    wrap.innerHTML = emptyHTML('fa-ranking-star','No se pudieron cargar los ratings', true);
+    return;
+  }
+  simState.ratings = data;
+  renderRatingsTable(data);
+}
+
+function renderRatingsTable(data){
+  const ratings = Object.entries(data.ratings).sort((a,b) => b[1].effective_elo - a[1].effective_elo);
+  const maxElo = ratings[0][1].effective_elo;
+  const minElo = ratings[ratings.length-1][1].effective_elo;
+  const range = Math.max(maxElo - minElo, 1);
+
+  document.getElementById('ratingsWrap').innerHTML = `
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem">
+      <span class="pred-tag"><i class="fa-solid fa-house"></i> Hosts: ${(data.hosts||[]).map(h=>tm(h).f).join(' ')}</span>
+      <span class="pred-tag gold"><i class="fa-solid fa-arrow-up"></i> Ventaja localía: +${data.host_advantage||65} Elo</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="ratings-table">
+        <thead><tr><th>#</th><th>Equipo</th><th>Elo Base</th><th>Elo Actual</th><th>Elo Efectivo</th><th>Forma</th><th>Odds Adj</th><th>Ataque</th><th>Defensa</th></tr></thead>
+        <tbody>${ratings.map(([name,r],i) => {
+          const t = tm(name);
+          const pos = ((r.effective_elo - minElo)/range*100).toFixed(1);
+          const formColor = r.form_adjustment > 10 ? 'var(--green-light)' : r.form_adjustment < -10 ? 'var(--red)' : 'var(--fg-muted)';
+          const oddsColor = r.odds_adjustment > 5 ? 'var(--green-light)' : r.odds_adjustment < -5 ? 'var(--red)' : 'var(--fg-muted)';
+          return `<tr>
+            <td style="font-family:'Oswald';color:var(--fg-muted)">${i+1}</td>
+            <td><div class="team-cell"><span style="font-size:1.1rem">${t.f}</span><span style="font-weight:600">${esc(t.es)}</span></div></td>
+            <td><span class="rating-num">${Math.round(r.base_elo)}</span></td>
+            <td><span class="rating-num">${Math.round(r.current_elo)}</span></td>
+            <td>
+              <span class="rating-num" style="color:var(--gold)">${Math.round(r.effective_elo)}</span>
+              <div class="rating-bar-wrap"><div class="rating-bar-fill" style="width:${pos}%"></div></div>
+            </td>
+            <td><span class="rating-delta ${r.form_adjustment>=0?'pos':'neg'}">${r.form_adjustment>0?'+':''}${r.form_adjustment.toFixed(1)}</span></td>
+            <td><span class="rating-delta ${r.odds_adjustment>=0?'pos':'neg'}">${r.odds_adjustment>0?'+':''}${r.odds_adjustment.toFixed(1)}</span></td>
+            <td><span class="rating-num">${r.attack_strength?.toFixed(3)||'—'}</span></td>
+            <td><span class="rating-num">${r.defense_strength?.toFixed(3)||'—'}</span></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>`;
+}
+
+// --- ULTIMA SIMULACION ---
 function renderLastSim(ls){
-  const c=document.getElementById('lastSimCard'),ct=document.getElementById('lastSimContent');
-  if(!ls){c.style.display='none';return;}
-  c.style.display='block';
-  const ch=tm(ls.knockout?.champion),fm=ls.knockout?.rounds?.final;
-  let h='';
-  const rd=ls.knockout?.rounds||{};
-  const nm={round_of_32:'32vos',round_of_16:'Octavos',quarter_finals:'Cuartos',semi_finals:'Semifinales'};
-  for(const[k,n]of Object.entries(nm)){
-    const ms=rd[k];
-    if(!ms||!ms.length)continue;
-    h+=`<div style="margin-bottom:1rem"><div class="d-title">${n}</div>${ms.map(m=>{
-      const a=tm(m.team_a),b=tm(m.team_b);
-      return `<div class="hist-item"><span>${a.f} ${a.es}</span><span class="pred-pct" style="font-size:.8rem;">${m.goals_a??'?'}-${m.goals_b??'?'}</span><span>${b.f} ${b.es}</span>${m.winner?`<span class="hist-result hist-win" style="margin-left:auto;">${tm(m.winner).f}</span>`:''}</div>`;
+  const c = document.getElementById('lastSimCard'), ct = document.getElementById('lastSimContent');
+  if(!ls){ c.style.display='none'; return; }
+  c.style.display = 'block';
+  const ch = tm(ls.knockout?.champion);
+  const rd = ls.knockout?.rounds || {};
+  const nm = {round_of_32:'Ronda de 32',round_of_16:'Octavos de Final',quarter_finals:'Cuartos de Final',semi_finals:'Semifinales',final:'Final',third:'Tercer Lugar'};
+
+  let h = '';
+  for(const [k,n] of Object.entries(nm)){
+    const ms = rd[k];
+    if(!ms || (Array.isArray(ms) && !ms.length)) continue;
+    const arr = Array.isArray(ms) ? ms : [ms];
+    h += `<div style="margin-bottom:1rem"><div class="d-title">${n}</div>${arr.map(m => {
+      const a = tm(m.home || m.team_a), b = tm(m.away || m.team_b);
+      const sc = `${m.goals_home??m.goals_a??'?'}-${m.goals_away??m.goals_b??'?'}`;
+      const w = m.winner;
+      return `<div class="hist-item" style="font-size:.85rem;padding:.5rem 0">
+        <span style="${w===(m.home||m.team_a)?'font-weight:600;color:var(--gold)':''}">${a.f} ${a.es}</span>
+        <span class="pred-pct" style="font-size:.9rem;margin:0 .5rem">${sc}</span>
+        <span style="${w===(m.away||m.team_b)?'font-weight:600;color:var(--gold)':''}">${b.es} ${b.f}</span>
+        ${m.penalties?'<span class="pred-tag" style="margin-left:auto;font-size:.6rem">PENALES</span>':''}
+      </div>`;
     }).join('')}</div>`;
   }
-  if(fm){
-    const a=tm(fm.team_a),b=tm(fm.team_b);
-    h+=`<div><div class="d-title" style="color:var(--gold);">Final</div><div class="hist-item" style="font-size:.95rem;padding:.6rem 0"><span>${a.f} <b>${a.es}</b></span><span class="pred-pct" style="font-size:1.1rem;">${fm.goals_a??'?'}-${fm.goals_b??'?'}</span><span><b>${b.es}</b> ${b.f}</span></div></div>`;
-  }
-  ct.innerHTML=`<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding:1rem;background:var(--gold-glow);border:1px solid var(--gold-border);border-radius:8px"><span style="font-size:2.5rem;">${ch.f}</span><div><div class="font-display font-700 text-xl">${ch.es}</div><div style="font-size:.8rem;color:var(--gold);">Campeon en esta simulacion</div></div></div><div style="max-height:400px;overflow-y:auto">${h||'<div class="empty-text">Sin datos</div>'}</div>`;
+
+  ct.innerHTML = `<div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding:1rem;background:var(--gold-glow);border:1px solid var(--gold-border);border-radius:8px">
+    <span style="font-size:2.5rem;">${ch.f}</span>
+    <div><div class="font-display font-700 text-xl">${ch.es}</div><div style="font-size:.8rem;color:var(--gold);">Campeón en esta simulación</div></div>
+  </div><div style="max-height:420px;overflow-y:auto">${h||'<div class="empty-text">Sin datos</div>'}</div>`;
 }
 
 // ============================================================================
@@ -1301,7 +1679,7 @@ function renderWCMatchCard(g,isLive=false,isFinished=false){
   }
 
   // Estadio del backend (ya no buscamos en state.wc.stadiums)
-  const stadiumHtml = g.stadium_name_en 
+  const stadiumHtml = g.stadium_name_en
     ? `<span><i class="fa-solid fa-stadium" style="margin-right:.2rem"></i>${esc(g.stadium_name_en)}, ${esc(g.stadium_city||'')}</span>`
     : '';
 
